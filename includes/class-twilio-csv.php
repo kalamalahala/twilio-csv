@@ -159,6 +159,7 @@ class Twilio_Csv {
 		// Add setting menu items
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'add_twilio_csv_admin_settings' );
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'register_twilio_csv_sample_page');
+		$this->loader->add_action( 'admin_init', $plugin_admin, 'send_message' );
 
 		// Saves and update settings
 		$this->loader->add_action( 'admin_init', $plugin_admin, 'twilio_csv_admin_settings_save' );
