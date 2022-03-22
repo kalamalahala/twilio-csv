@@ -20,7 +20,12 @@
  * @subpackage Twilio_Csv/admin
  * @author     Tyler Karle <solo.driver.bob@gmail.com>
  */
-class Twilio_Csv_Admin {
+
+ // Import Twilio Functionality
+ require_once( plugin_dir_path(__FILE__) . '/../twilio/Twilio/autoload.php' );
+ use Twilio\Rest\Client;
+class Twilio_Csv_Admin
+{
 
 	/**
 	 * The ID of this plugin.
@@ -47,11 +52,11 @@ class Twilio_Csv_Admin {
 	 * @param      string    $plugin_name       The name of this plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
-	public function __construct( $plugin_name, $version ) {
+	public function __construct($plugin_name, $version)
+	{
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
-
 	}
 
 	/**
@@ -59,7 +64,8 @@ class Twilio_Csv_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_styles() {
+	public function enqueue_styles()
+	{
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -73,8 +79,7 @@ class Twilio_Csv_Admin {
 		 * class.
 		 */
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/twilio-csv-admin.css', array(), $this->version, 'all' );
-
+		wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/twilio-csv-admin.css', array(), $this->version, 'all');
 	}
 
 	/**
@@ -82,7 +87,8 @@ class Twilio_Csv_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts()
+	{
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -96,8 +102,7 @@ class Twilio_Csv_Admin {
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/twilio-csv-admin.js', array( 'jquery' ), $this->version, false );
-
+		wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/twilio-csv-admin.js', array('jquery'), $this->version, false);
 	}
 
 	/**
@@ -105,7 +110,8 @@ class Twilio_Csv_Admin {
 	 * @since    1.0.0
 	 */
 
-	public function add_twilio_csv_admin_settings() {
+	public function add_twilio_csv_admin_settings()
+	{
 
 		/*
 		* Add a settings page for this plugin to the Settings menu.
@@ -113,7 +119,12 @@ class Twilio_Csv_Admin {
 		* Administration Menus: http://codex.wordpress.org/Administration_Menus
 		*
 		*/
-		add_options_page( 'TWILIO CSV SETTINGS', 'TWILIO CSV', 'manage_options', $this->plugin_name, array($this, 'display_twilio_csv_settings_page')
+		add_options_page(
+			'TWILIO CSV SETTINGS',
+			'TWILIO CSV',
+			'manage_options',
+			$this->plugin_name,
+			array($this, 'display_twilio_csv_settings_page')
 		);
 	}
 
@@ -123,17 +134,19 @@ class Twilio_Csv_Admin {
 	 * @since    1.0.0
 	 */
 
-	public function display_twilio_csv_settings_page() {
-		include_once( 'partials/twilio-csv-admin-display.php' );
+	public function display_twilio_csv_settings_page()
+	{
+		include_once('partials/twilio-csv-admin-display.php');
 	}
 
 	/**
 	 * Registers and Defines the necessary fields we need.
 	 *
 	 */
-	public function twilio_csv_admin_settings_save(){
+	public function twilio_csv_admin_settings_save()
+	{
 
-		register_setting( $this->plugin_name, $this->plugin_name, array($this, 'plugin_options_validate') );
+		register_setting($this->plugin_name, $this->plugin_name, array($this, 'plugin_options_validate'));
 
 		add_settings_section('twilio_csv_main', 'Main Settings', array($this, 'twilio_csv_section_text'), 'twilio-csv-settings-page');
 
@@ -146,34 +159,38 @@ class Twilio_Csv_Admin {
 	 * Displays the settings sub header
 	 *
 	 */
-	public function twilio_csv_section_text() {
+	public function twilio_csv_section_text()
+	{
 		echo '<h3>Edit api details</h3>';
-	} 
+	}
 
 	/**
 	 * Renders the sid input field
 	 *
 	 */
-	public function twilio_csv_setting_sid() {
+	public function twilio_csv_setting_sid()
+	{
 
-	$options = get_option($this->plugin_name);
-	echo "<input id='plugin_text_string' name='$this->plugin_name[api_sid]' size='40' type='text' value='{$options['api_sid']}' />";
-	}   
+		$options = get_option($this->plugin_name);
+		echo "<input id='plugin_text_string' name='$this->plugin_name[api_sid]' size='40' type='text' value='{$options['api_sid']}' />";
+	}
 
 	/**
 	 * Renders the auth_token input field
 	 *
 	 */
-	public function twilio_csv_setting_token() {
-	$options = get_option($this->plugin_name);
-	echo "<input id='plugin_text_string' name='$this->plugin_name[api_auth_token]' size='40' type='text' value='{$options['api_auth_token']}' />";
+	public function twilio_csv_setting_token()
+	{
+		$options = get_option($this->plugin_name);
+		echo "<input id='plugin_text_string' name='$this->plugin_name[api_auth_token]' size='40' type='text' value='{$options['api_auth_token']}' />";
 	}
 
 	/**
 	 * Sanitises all input fields.
 	 *
 	 */
-	public function plugin_options_validate($input) {
+	public function plugin_options_validate($input)
+	{
 		$newinput['api_sid'] = trim($input['api_sid']);
 		$newinput['api_auth_token'] = trim($input['api_auth_token']);
 
@@ -181,6 +198,109 @@ class Twilio_Csv_Admin {
 	}
 
 
+	/**
+	 * Register the sms page in the admin area
+	 *
+	 * @since 1.0.0
+	 */
+	public function register_twilio_csv_sample_page()
+	{
+		add_submenu_page(
+			'tools.php',
+			__('TWILIO CSV SMS Sample', $this->plugin_name . '-sms'),
+			__('Send SMS', $this->plugin_name . '-sms'),
+			'manage_options',
+			$this->plugin_name . '-sms',
+			array(
+				$this,
+				'display_twilio_csv_sample_page'
+			)
+		);
+	}
+
+	/**
+	 * Display the content located in the partials file
+	 *
+	 * @return void
+	 */
+	public function display_twilio_csv_sample_page()
+	{
+		include_once('partials/twilio-csv-admin-sms.php');
+	}
+
+	public function send_message()
+	{
+		if (!isset($_POST['send_sms_message'])) {
+			return;
+		}
+
+		$to        = (isset($_POST['numbers'])) ? $_POST['numbers'] : '';
+		$sender_id = (isset($_POST['sender']))  ? $_POST['sender']  : '';
+		$message   = (isset($_POST['message'])) ? $_POST['message'] : '';
+
+		$api_details = get_option('twilio-csv');
+		if (is_array($api_details) and count($api_details) != 0) {
+			$TWILIO_SID = $api_details['api_sid'];
+			$TWILIO_TOKEN = $api_details['api_auth_token'];
+		}
+		try{
+			$to = explode(',', $to);
+
+			$client = new Client($TWILIO_SID, $TWILIO_TOKEN);
+
+			  $response = $client->messages->create(
+					$to,
+					array(
+					  'from' => $sender_id,
+					 'body' => $message
+					)
+				);
+
+			   self::DisplaySuccess();
+
+		} catch (Exception $e) {
+
+			self::DisplayError( $e->getMessage() );
+		}           
+	}
+
+			/**
+		 * Designs for displaying Notices
+		 *
+		 * @since    1.0.0
+		 * @access   private
+		 * @var $message - String - The message we are displaying
+		 * @var $status   - Boolean - its either true or false
+		 */
+		public static function admin_notice($message, $status = true) {
+			$class =  ($status) ? 'notice notice-success' : 'notice notice-error';
+			$message = __( $message, 'sample-text-domain' );
+
+			printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) ); 
+		}
+
+		/**
+		 * Displays Error Notices
+		 *
+		 * @since    1.0.0
+		 * @access   private
+		 */
+		public static function DisplayError($message = "Aww!, there was an error.") {
+			add_action( 'admin_notices', function() use($message) {
+			self::admin_notice($message, false);
+			} );
+		}
+
+		/**
+		 * Displays Success Notices
+		 *
+		 * @since    1.0.0
+		 * @access   private
+		 */
+		public static function DisplaySuccess($message = "Successful!") {
+			add_action( 'admin_notices', function() use($message) {
+			self::admin_notice($message, true);
+			} );
+		}
+
 }
-
-
