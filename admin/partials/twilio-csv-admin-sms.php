@@ -1,6 +1,6 @@
 <!-- admin/partial/twilio-csv-admin-sms.php -->
 
-<h2><? esc_attr_e( 'Send message easily', 'WpAdminStyle' ); ?></h2>
+<h2><?php esc_attr_e( 'Send message easily', 'WpAdminStyle' ); ?></h2>
 <div class="wrap">
     <div id="icon-options-general" class="icon32"></div>
     <div id="poststuff">
@@ -9,7 +9,7 @@
             <div id="post-body-content">
                 <div class="meta-box-sortables ui-sortable">
                     <div class="postbox">
-                        <h2 class="hndle"><span><? esc_attr_e( 'SEND SMS', 'WpAdminStyle' ); ?></span>
+                        <h2 class="handle"><span><?php esc_attr_e( 'SEND SMS', 'WpAdminStyle' ); ?></span>
                         </h2>
                         <div class="inside">
                             <form method="post" name="cleanup_options" action="">
