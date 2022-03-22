@@ -156,6 +156,12 @@ class Twilio_Csv {
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		// Add setting menu item 
+		$this->loader->add_action( 'admin_menu', $plugin_admin, 'add_twilio_csv_admin_setting' );
+
+		// Saves and update settings
+		$this->loader->add_action( 'admin_init', $plugin_admin, 'twilio_csv_admin_settings_save' );
+
 
 	}
 
