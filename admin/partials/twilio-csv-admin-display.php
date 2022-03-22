@@ -16,7 +16,7 @@
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
 
 <form method="POST" action='options.php'>
-   <?php
+    <?php
          settings_fields($this->plugin_name);
          do_settings_sections('twilio-csv-settings');
 

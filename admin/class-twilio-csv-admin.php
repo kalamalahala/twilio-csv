@@ -113,7 +113,7 @@ class Twilio_Csv_Admin {
 		* Administration Menus: http://codex.wordpress.org/Administration_Menus
 		*
 		*/
-		add_options_page( 'TWILIO CSV SETTINGS', 'TWILIO CSV', 'manage_options', $this->plugin_name, array($this, 'display_twilio_csv_settings_page')
+		add_options_page( 'TWILIO CSV SETTINGS', 'TWILIO CSV', 'manage_options', $this->plugin_name . '-settings', array($this, 'display_twilio_csv_settings_page')
 		);
 	}
 
