@@ -244,7 +244,7 @@ class Twilio_Csv_Admin
 			$TWILIO_TOKEN = $api_details['api_auth_token'];
 		}
 		try{
-			$to = explode(',', $to);
+			// $to = explode(',', $to);
 
 			$client = new Client($TWILIO_SID, $TWILIO_TOKEN);
 
