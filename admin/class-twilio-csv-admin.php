@@ -113,7 +113,7 @@ class Twilio_Csv_Admin {
 		* Administration Menus: http://codex.wordpress.org/Administration_Menus
 		*
 		*/
-		add_options_page( 'TWILIO CSV SETTINGS', 'TWILIO CSV', 'manage_options', $this->plugin_name . '-settings', array($this, 'display_twilio_csv_settings_page')
+		add_options_page( 'TWILIO CSV SETTINGS', 'TWILIO CSV', 'manage_options', $this->plugin_name, array($this, 'display_twilio_csv_settings_page')
 		);
 	}
 
@@ -133,7 +133,7 @@ class Twilio_Csv_Admin {
 	 */
 	public function twilio_csv_admin_settings_save(){
 
-		register_setting( $this->plugin_name . '-settings', $this->plugin_name . '-settings', array($this, 'plugin_options_validate') );
+		register_setting( $this->plugin_name, $this->plugin_name, array($this, 'plugin_options_validate') );
 
 		add_settings_section('twilio_csv_main', 'Main Settings', array($this, 'twilio_csv_section_text'), 'twilio-csv-settings-page');
 
@@ -156,7 +156,7 @@ class Twilio_Csv_Admin {
 	 */
 	public function twilio_csv_setting_sid() {
 
-	$options = get_option($this->plugin_name . '-settings');
+	$options = get_option($this->plugin_name);
 	echo "<input id='plugin_text_string' name='$this->plugin_name[api_sid]' size='40' type='text' value='{$options['api_sid']}' />";
 	}   
 
