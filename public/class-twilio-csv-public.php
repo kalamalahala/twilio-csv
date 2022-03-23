@@ -143,11 +143,15 @@ class Twilio_Csv_Public {
 			), $atts, 'print_some_stuff');
 
 			$content = (isset($atts['content'])) ? $atts['content'] : 'but actually blank or something idk';
-			echo $content;
-			return;
+			return $content;
+		}
+
+		function create_csv_upload_form() {
+			include_once('partials/twilio-csv-public-display.php');
 		}
 
 		add_shortcode('print_some_stuff', 'print_some_stuff');
+		add_shortcode('create_csv_upload_form', 'create_csv_upload_form');
 	}
 
 }
