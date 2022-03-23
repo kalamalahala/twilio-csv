@@ -113,7 +113,7 @@ class Twilio_Csv_Public {
 	public function process_pending_messages() {
 		// exit out from this hook if no $_POST data for CSV upload form
 		if (!isset($_POST['process_bulk_upload_sms'])) {
-			echo '<h1>hello</h1>';
+			// echo '<h1>hello</h1>';
 			return;
 		}
 
