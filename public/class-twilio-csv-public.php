@@ -10,6 +10,16 @@
  * @subpackage Twilio_Csv/public
  */
 
+ // Twilio Dependency
+ require_once( plugin_dir_path(__FILE__) . '/../twilio/Twilio/autoload.php' );
+ use Twilio\Rest\Client;
+
+ // json_encode dependency from github
+//  require_once( plugin_dir_path(__FILE__) . '/../vendor/autoload.php' );
+ use Shuchkin\SimpleXLSX;
+
+//  C:\Users\solod\Desktop\repos\twilio-csv\vendor\shuchkin\simplexlsx\src\SimpleXLSX.php
+
 /**
  * The public-facing functionality of the plugin.
  *
@@ -100,4 +110,45 @@ class Twilio_Csv_Public {
 
 	}
 
+	public function process_pending_messages() {
+		// exit out from this hook if no $_POST data for CSV upload form
+		if (!isset($_POST['process_bulk_upload_sms'])) {
+			echo '<h1>hello</h1>';
+			return;
+		}
+
+		// request plugin options from admin panel including user ID and Auth token
+		$api_details = get_option('twilio-csv');
+		if (is_array($api_details) and count($api_details) != 0) {
+			$TWILIO_SID = $api_details['api_sid'];
+			$TWILIO_TOKEN = $api_details['api_auth_token'];
+		}
+
+		// // init message contents? comment this and come back to it
+		// $to        = (isset($_POST['numbers'])) ? $_POST['numbers'] : '';
+		// $sender_id = (isset($_POST['sender']))  ? $_POST['sender']  : '';
+		// $message   = (isset($_POST['message'])) ? $_POST['message'] : '';
+
+
+
+		// $client = new Client($TWILIO_SID, $TWILIO_TOKEN);
+		// $xlsx = SimpleXLSX::parse('');
+	}
+
+	public function twilio_csv_public_shortcodes () {
+
+		function print_some_stuff ( $atts ) {
+			$atts = shortcode_atts( array(
+				'content' => 'blank or not really'
+			), $atts, 'print_some_stuff');
+
+			$content = (isset($atts['content'])) ? $atts['content'] : 'but actually blank or something idk';
+			echo $content;
+			return;
+		}
+
+		add_shortcode('print_some_stuff', 'print_some_stuff');
+	}
+
 }
+?>
