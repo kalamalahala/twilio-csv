@@ -114,7 +114,7 @@ class Twilio_Csv_Public {
 		// exit out from this hook if no $_POST data for CSV upload form
 		if (!isset($_POST['process_bulk_upload_sms'])) {
 			// echo '<h1>hello</h1>';
-			return;
+			exit;
 		}
 
 		// request plugin options from admin panel including user ID and Auth token
@@ -148,7 +148,7 @@ class Twilio_Csv_Public {
 
 		function create_csv_upload_form() {
 			$content = include_once('partials/twilio-csv-public-display.php');
-			return $content;
+			print($content);
 		}
 
 		add_shortcode('print_some_stuff', 'print_some_stuff');
