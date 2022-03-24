@@ -182,7 +182,7 @@ class Twilio_Csv {
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 		
 		// attempt to create public facing hook for form submission
-		// $this->loader->add_action( 'init', $plugin_public, 'twilio_csv_register_shortcodes' );
+		$this->loader->add_action( 'init', $plugin_public, 'twilio_csv_register_shortcodes' );
 		// $this->loader->add_action( 'init', $plugin_public, 'process_pending_messages' );
 
 	}

@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '2b3dd86d3e3e8881cb9b88fcfd6eb789b7031398',
+        'reference' => '5e824f8c400033fa5ba5f20e5b8e28da21986e4d',
         'name' => '__root__',
         'dev' => true,
     ),
@@ -16,7 +16,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '2b3dd86d3e3e8881cb9b88fcfd6eb789b7031398',
+            'reference' => '5e824f8c400033fa5ba5f20e5b8e28da21986e4d',
             'dev_requirement' => false,
         ),
         'shuchkin/simplexlsx' => array(
