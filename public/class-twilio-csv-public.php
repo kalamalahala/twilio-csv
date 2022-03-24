@@ -157,5 +157,5 @@ class Twilio_Csv_Public {
 		add_shortcode('create_csv_upload_form', array($this, 'create_csv_upload_form'));
 		add_shortcode('print_some_stuff', array($this, 'print_some_stuff'));
 	}
-}
+} //  classTwilio_Csv_Public()
 ?>
