@@ -153,12 +153,10 @@ class Twilio_Csv_Public {
 	// this is the HTML Layout for the form since it doesn't like to be included, although script tags could be used as require/include()
 	public function create_csv_upload_form() {
 		$list_csv_contents = '';
-		if ($_POST['csv-submit']) {
-			$list_csv_contents = "<h1>big ol chungus</h1>";
-		}
 
 		if ($_FILES['csv-upload']) {
-			$list_csv_contents = "<strong> csv was uploaded </strong>";
+			$list_csv_contents = '<h3>input field included in a POST/FILES header</h3>';
+			var_dump($_FILES['csv-upload']);
 		}
 
 		$upload_form = '    <div class="twilio-csv-form-container">
