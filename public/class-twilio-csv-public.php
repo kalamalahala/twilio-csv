@@ -174,7 +174,6 @@ class Twilio_Csv_Public {
 				foreach ($xlsx->readRows() as $k => $r) {
 					if ($row_count > $pagination_value) {
 						break;
-						$row_count++;
 					}
 					//      if ($k == 0) continue; // skip first row
 					$list_csv_contents .= '<tr>';
@@ -182,6 +181,7 @@ class Twilio_Csv_Public {
 						$list_csv_contents .= '<td>' . ( isset($r[ $i ]) ? $r[ $i ] : '&nbsp;' ) . '</td>';
 					}
 					$list_csv_contents .= '</tr>';
+					$row_count++;
 				}
 				$list_csv_contents .= '</table>';
 			} else {
