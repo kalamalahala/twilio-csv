@@ -156,23 +156,23 @@ class Twilio_Csv_Public {
 
 		if (isset($_FILES['csv-upload'])) {
 			if ($xlsx = SimpleXLSX::parse($_FILES['csv-upload']['tmp_name'])) {
-				echo '<h2>Parsing Result</h2>';
-				echo '<table border="1" cellpadding="3" style="border-collapse: collapse">';
+				$list_csv_contents .= '<h2>Parsing Result</h2>';
+				$list_csv_contents .= '<table border="1" cellpadding="3" style="border-collapse: collapse">';
 		
 				$dim = $xlsx->dimension();
 				$cols = $dim[0];
 		
 				foreach ($xlsx->readRows() as $k => $r) {
 					//      if ($k == 0) continue; // skip first row
-					echo '<tr>';
+					$list_csv_contents .= '<tr>';
 					for ($i = 0; $i < $cols; $i ++) {
-						echo '<td>' . ( isset($r[ $i ]) ? $r[ $i ] : '&nbsp;' ) . '</td>';
+						$list_csv_contents .= '<td>' . ( isset($r[ $i ]) ? $r[ $i ] : '&nbsp;' ) . '</td>';
 					}
-					echo '</tr>';
+					$list_csv_contents .= '</tr>';
 				}
-				echo '</table>';
+				$list_csv_contents .= '</table>';
 			} else {
-				echo SimpleXLSX::parseError();
+				$list_csv_contents .= SimpleXLSX::parseError();
 			}
 		}
 
