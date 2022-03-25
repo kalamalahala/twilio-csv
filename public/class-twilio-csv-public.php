@@ -199,7 +199,8 @@ class Twilio_Csv_Public {
 				// attempt to add CSV to database
 				if (!empty($json_rows) && $_POST['confirm-upload'] == 'confirm') {
 					try {
-						$file_to_wpdb = $this->process_pending_messages($json_rows, $trim_rows);
+						$json_data = json_encode($json_rows);
+						$file_to_wpdb = $this->process_pending_messages($json_data, $trim_rows);
 						$list_csv_contents .= ($file_to_wpdb) ? '<div class="alert-success">File sucessfully parsed, trimmed, and added to database.</div>' : '';
 					} catch (Exception $e) {
 						echo 'Error: ' . $e;
