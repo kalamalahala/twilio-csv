@@ -171,7 +171,7 @@ class Twilio_Csv_Public {
 					$rows[] = array_combine($header_values, $r);
 				}
 				$sheet_data_as_json = json_encode($rows);
-				print_r($rows);
+				print_r($sheet_data_as_json);
 				
 				$dim = $xlsx->dimension();
 				$cols = $dim[0];
