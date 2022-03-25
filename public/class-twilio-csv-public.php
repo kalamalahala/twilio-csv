@@ -283,7 +283,25 @@ class Twilio_Csv_Public {
 	}
 
 	function select_uploaded_csv_files() {
-		return 'hello';
+		return '<div class="twilio-csv-viewer">
+		<form
+		  name="twilio-csv-viewer"
+		  action=""
+		  method="post"
+		  enctype="application/x-www-form-urlencoded"
+		>
+		  <div class="view-section">
+			<label for="csv-select">Select Uploaded CSV</label>
+			<select type="select" id="csv-select" name="csv-select">
+			  <option value="">dfasdklfasdflkm</option>
+			  </select>
+			  <div class="submit-contacts-to-twilio">
+				<input type="submit" value="Submit" name="csv-submit" />
+			  </div>
+			</div>
+		  </form>
+		  <div class="api-information"></div>
+	  </div>';
 	}
 
 	function twilio_csv_register_shortcodes_create() {
