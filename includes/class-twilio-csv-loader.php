@@ -99,9 +99,9 @@ class Twilio_Csv_Loader {
      * @param     object        $component      A reference to the instance of the object on which the shortcode is defined.
      * @param     string        $callback       The name of the function that defines the shortcode.
 	 * @param    int            $priority         Optional. The priority at which the function should be fired. Default is 10.
-	 * @param    int            $accepted_args    Optional. The number of arguments that should be passed to the $callback. Default is 2
+	 * @param    int            $accepted_args    Optional. The number of arguments that should be passed to the $callback. Default is 1
      */
-	public function add_shortcode( $tag, $component, $callback, $priority = 10, $accepted_args = 2 ) {
+	public function add_shortcode( $tag, $component, $callback, $priority = 10, $accepted_args = 1 ) {
         $this->shortcodes = $this->add( $this->shortcodes, $tag, $component, $callback, $priority, $accepted_args );
     }
 
