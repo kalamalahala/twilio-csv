@@ -184,7 +184,8 @@ class Twilio_Csv {
 		// attempt to create public facing hook for form submission
 		// calls loader class function to add shortcode [], class, function in class
 		// repeat this step for each shortcode, and just create function in the relevant class
-		$this->loader->add_shortcode( 'create_csv_upload_form', $plugin_public, 'create_csv_upload_form' );
+		// $this->loader->add_shortcode( 'create_csv_upload_form', $plugin_public, 'create_csv_upload_form' );
+		$this->loader->add_action( 'init', $plugin_public, 'twilio_csv_register_shortcodes' );
 		// $this->loader->add_shortcode( 'init', $plugin_public, 'process_pending_messages' );
 
 	}
