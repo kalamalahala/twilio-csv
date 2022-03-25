@@ -174,7 +174,7 @@ class Twilio_Csv_Public {
 
 				print('<pre>');
 				// print_r($json_rows);
-				print_r($json_rows[0]);
+				print_r(($json_rows[0][1]) ? $json_rows[0][1] : $json_rows[0]['Office']);
 				print('</pre>');
 				
 				$dim = $xlsx->dimension();
