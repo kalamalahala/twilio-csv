@@ -10,13 +10,15 @@
  * @subpackage Twilio_Csv/public
  */
 
- // Twilio Dependency
- require_once( plugin_dir_path(__FILE__) . '/../twilio/Twilio/autoload.php' );
- use Twilio\Rest\Client;
+// Twilio Dependency
+require_once(plugin_dir_path(__FILE__) . '/../twilio/Twilio/autoload.php');
 
- // json_encode dependency from github
- require_once( plugin_dir_path(__FILE__) . '/../vendor/autoload.php' );
- use Shuchkin\SimpleXLSX;
+use Twilio\Rest\Client;
+
+// json_encode dependency from github
+require_once(plugin_dir_path(__FILE__) . '/../vendor/autoload.php');
+
+use Shuchkin\SimpleXLSX;
 
 //  C:\Users\solod\Desktop\repos\twilio-csv\vendor\shuchkin\simplexlsx\src\SimpleXLSX.php
 
@@ -30,7 +32,8 @@
  * @subpackage Twilio_Csv/public
  * @author     Tyler Karle <solo.driver.bob@gmail.com>
  */
-class Twilio_Csv_Public {
+class Twilio_Csv_Public
+{
 
 	/**
 	 * The ID of this plugin.
@@ -57,11 +60,11 @@ class Twilio_Csv_Public {
 	 * @param      string    $plugin_name       The name of the plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
-	public function __construct( $plugin_name, $version ) {
+	public function __construct($plugin_name, $version)
+	{
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
-
 	}
 
 	/**
@@ -69,7 +72,8 @@ class Twilio_Csv_Public {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_styles() {
+	public function enqueue_styles()
+	{
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -83,8 +87,7 @@ class Twilio_Csv_Public {
 		 * class.
 		 */
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/twilio-csv-public.css', array(), $this->version, 'all' );
-
+		wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/twilio-csv-public.css', array(), $this->version, 'all');
 	}
 
 	/**
@@ -92,7 +95,8 @@ class Twilio_Csv_Public {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts()
+	{
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -106,15 +110,17 @@ class Twilio_Csv_Public {
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/twilio-csv-public.js', array( 'jquery' ), $this->version, false );
-
+		wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/twilio-csv-public.js', array('jquery'), $this->version, false);
 	}
 
-	function process_pending_messages( $contact_data, $num_entries ) {
-		if (!$contact_data) { return false; }
+	function process_pending_messages($contact_data, $num_entries)
+	{
+		if (!$contact_data) {
+			return false;
+		}
 
 		global $wpdb;
-		$csv_table = $wpdb->prefix.'twilio_csv_entries';
+		$csv_table = $wpdb->prefix . 'twilio_csv_entries';
 		$date = date('c', strtotime('today'));
 		$csv_data = array(
 			'id' => '',
@@ -131,7 +137,7 @@ class Twilio_Csv_Public {
 		} else {
 			return false;
 		}
-		
+
 		// $query_INSERT = $wpdb->insert();
 
 
@@ -153,25 +159,27 @@ class Twilio_Csv_Public {
 		// $xlsx = SimpleXLSX::parse('');
 	}
 
-	public function twilio_csv_public_shortcodes () {
+	public function twilio_csv_public_shortcodes()
+	{
 
-		function print_some_stuff ( $atts ) {
-			$atts = shortcode_atts( array(
+		function print_some_stuff($atts)
+		{
+			$atts = shortcode_atts(array(
 				'content' => 'blank or not really'
 			), $atts, 'print_some_stuff');
 
 			$content = (isset($atts['content'])) ? $atts['content'] : 'but actually blank or something idk';
 			return $content;
 		}
-
 	}
 
 
 	// this is now the shortcode function registered in the public class
 	// this is the HTML Layout for the form since it doesn't like to be included, although script tags could be used as require/include()
-	public function create_csv_upload_form( $atts ) {
-		
-		$atts = shortcode_atts( array( 
+	public function create_csv_upload_form($atts)
+	{
+
+		$atts = shortcode_atts(array(
 			'pagination' => 10
 		), $atts, 'create_csv_upload_form');
 
@@ -190,7 +198,9 @@ class Twilio_Csv_Public {
 					}
 					// @todo hardcoding CellPhone for now, $header_values[14] or $header_values['CellPhone']
 					// or maybe this?: ignore rows that do not have anything in column 14
-					if (!$r[14]) { continue; }
+					if (!$r[14]) {
+						continue;
+					}
 
 					$json_rows[] = array_combine($header_values, $r);
 				}
@@ -215,7 +225,7 @@ class Twilio_Csv_Public {
 				// // var_dump($header_values);				
 				// print('</pre>');
 
-				
+
 				$dim = $xlsx->dimension();
 				$cols = $dim[0];
 				$pagination_value = $atts['pagination'];
@@ -228,9 +238,9 @@ class Twilio_Csv_Public {
 				// for ($i = 0; $i < $cols; $i ++) {
 				// 	$sheet_columns .= isset($json_rows[$k][$r]) ? $json_rows[$k][$r] : 'zzz' ) . '</td>';
 				// }
-				
+
 				$list_csv_contents .= '<h2>Contents of File</h2>';
-				$list_csv_contents .= '<p>' . $rows . ' entries in file. Displaying ' . $pagination_value .' per page.</p>';
+				$list_csv_contents .= '<p>' . $rows . ' entries in file. Displaying ' . $pagination_value . ' per page.</p>';
 				$list_csv_contents .= '<p>' . $trim_rows . ' after trimming !CellPhone.</p>';
 				$list_csv_contents .= '<table border="1" cellpadding="3" style="border-collapse: collapse">';
 
@@ -240,11 +250,13 @@ class Twilio_Csv_Public {
 						break;
 					}
 					// ignore rows that do not have a cell phone value
-					if (!$r['CellPhone']) { continue; }
+					if (!$r['CellPhone']) {
+						continue;
+					}
 					//      if ($k == 0) continue; // skip first row
 					$list_csv_contents .= '<tr>';
-					for ($i = 0; $i < $cols; $i ++) {
-						$list_csv_contents .= '<td>' . ( isset($json_rows[$k][$header_values[$i]]) ? $json_rows[$k][$header_values[$i]] : 'zzz' ) . '</td>';
+					for ($i = 0; $i < $cols; $i++) {
+						$list_csv_contents .= '<td>' . (isset($json_rows[$k][$header_values[$i]]) ? $json_rows[$k][$header_values[$i]] : 'zzz') . '</td>';
 					}
 					$list_csv_contents .= '</tr>';
 					$row_count++;
@@ -270,8 +282,8 @@ class Twilio_Csv_Public {
           name="csv-upload"
           accept=".csv,.xls,.xlsx"
         />
-        ' . ((!empty($list_csv_contents)) ? '<div class="list-csv-contents">' . $list_csv_contents . '</div>' : '') . 
-        '<input type="checkbox" value="confirm" name="confirm-upload" checked>
+        ' . ((!empty($list_csv_contents)) ? '<div class="list-csv-contents">' . $list_csv_contents . '</div>' : '') .
+			'<input type="checkbox" value="confirm" name="confirm-upload" checked>
 		<label for="confirm-upload">Add file to database?</label>
 		<div class="submit-contacts-to-twilio">
           <input type="submit" value="Submit" name="csv-submit">
@@ -280,10 +292,11 @@ class Twilio_Csv_Public {
 
       </form>
     </div>';
-	return $upload_form;
+		return $upload_form;
 	}
 
-	public function select_uploaded_csv_files( $atts ) {
+	public function select_uploaded_csv_files($atts)
+	{
 		// sets atts and initial array of options to ten and zero
 		$atts = shortcode_atts(array(
 			'pagination' => 10
@@ -292,22 +305,20 @@ class Twilio_Csv_Public {
 
 		// go get entries from database
 		global $wpdb;
-		$csv_table = $wpdb->prefix.'twilio_csv_entries';
+		$csv_table = $wpdb->prefix . 'twilio_csv_entries';
 		$table_contents = $wpdb->get_results('SELECT * FROM ' . $csv_table . ';');
 
-		print_r($table_contents);
+		// loop table_contents into option group
+		$entry_array = array();
+		foreach ($table_contents as $entry) {
+			$entry_array .= json_decode($entry->contact_data);
+			$option_group .= '<option value="' . $entry->id . '">' . $entry->date . '</option>';
+		}
 
-		$entry_array = json_decode($table_contents);
 
 		print('<pre>');
 		var_dump($entry_array);
 		print('</pre>');
-
-		// // loop table_contents into option group
-		foreach ($table_contents as $entry) {
-			
-			$option_group .= '<option value="' . $entry->id . '">' . $entry->date . '</option>';
-		}
 
 
 
@@ -334,16 +345,14 @@ class Twilio_Csv_Public {
 		return $selector_form;
 	}
 
-	function twilio_csv_register_shortcodes_create() {
-		add_shortcode( 'create_csv_upload_form', array( $this, 'create_csv_upload_form' ) );
+	function twilio_csv_register_shortcodes_create()
+	{
+		add_shortcode('create_csv_upload_form', array($this, 'create_csv_upload_form'));
 	}
 
 
-	function twilio_csv_register_shortcodes_select() {
-		add_shortcode( 'select_uploaded_csv_files', array( $this, 'select_uploaded_csv_files' ) );
+	function twilio_csv_register_shortcodes_select()
+	{
+		add_shortcode('select_uploaded_csv_files', array($this, 'select_uploaded_csv_files'));
 	}
-
-
-	
 } //  classTwilio_Csv_Public()
-?>
