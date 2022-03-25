@@ -270,9 +270,9 @@ class Twilio_Csv_Public {
           accept=".csv,.xls,.xlsx"
         />
         ' . ((!empty($list_csv_contents)) ? '<div class="list-csv-contents">' . $list_csv_contents . '</div>' : '') . 
-        '<div class="submit-contacts-to-twilio">
-		<input type="checkbox" value="confirm" name="confirm-upload" checked>
+        '<input type="checkbox" value="confirm" name="confirm-upload" checked>
 		<label for="confirm-upload">Add file to database?</label>
+		<div class="submit-contacts-to-twilio">
           <input type="submit" value="Submit" name="csv-submit">
         </div>
         </div>
