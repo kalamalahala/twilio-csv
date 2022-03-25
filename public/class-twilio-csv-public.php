@@ -172,9 +172,12 @@ class Twilio_Csv_Public {
 				}
 				$sheet_data_as_json = json_encode($json_rows);
 
+				// extract($json_rows, EXTR_PREFIX_SAME, 'dup');
+
 				print('<pre>');
 				// print_r($json_rows);
-				print_r(($json_rows[0][1]) ? $json_rows[0][1] : $json_rows[0]['Office']);
+				print_r($json_rows[0]);				
+				print_r($json_rows[1]);				
 				print('</pre>');
 				
 				$dim = $xlsx->dimension();
