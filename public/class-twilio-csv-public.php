@@ -153,7 +153,7 @@ class Twilio_Csv_Public {
 	// this is now the shortcode function registered in the public class
 	public function create_csv_upload_form() {
 		// $content = include_once('partials/twilio-csv-public-display.php');
-		$content = '<h3>This should be the raw output of ' . ($_GET['string']) ? $_GET['string'] : 'html' . '</h3>';
+		$content = '<h3>This should be the raw output of ' . (($_GET['string']) ? $_GET['string'] : 'html') . '</h3>';
 		return $content;
 	}
 
