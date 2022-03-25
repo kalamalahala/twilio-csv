@@ -295,9 +295,13 @@ class Twilio_Csv_Public {
 		$csv_table = $wpdb->prefix.'twilio_csv_entries';
 		$table_contents = $wpdb->get_results('SELECT * FROM ' . $csv_table . ';');
 
-		var_dump($table_contents);
+		print_r($table_contents);
 
-		// $entry_array = json_decode($table_contents);
+		$entry_array = json_decode($table_contents);
+
+		print('<pre>');
+		var_dump($entry_array);
+		print('</pre>');
 
 		// // loop table_contents into option group
 		// foreach ($table_contents as $entry) {
