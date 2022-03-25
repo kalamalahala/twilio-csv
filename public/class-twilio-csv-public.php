@@ -317,7 +317,7 @@ class Twilio_Csv_Public
 
 
 		print('<pre>');
-		var_dump($entry_array);
+		print_r($entry_array);
 		print('</pre>');
 
 
