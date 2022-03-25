@@ -153,6 +153,9 @@ class Twilio_Csv_Public {
 	public function create_csv_upload_form() {
 		$content = require('partials/twilio-csv-public-display.php');
 		print($content);
+		print('hello');
+		echo 'hello 2';
+		var_dump($content);
 	}
 
 	function twilio_csv_register_shortcodes() {
