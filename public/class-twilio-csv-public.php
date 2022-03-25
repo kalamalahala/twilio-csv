@@ -146,17 +146,17 @@ class Twilio_Csv_Public {
 			return $content;
 		}
 
-		function create_csv_upload_form() {
-			$content = include_once('partials/twilio-csv-public-display.php');
-			print($content);
-			return $content;
-		}
-
+		
+	}
+	// add_shortcode('print_some_stuff', array($this, 'print_some_stuff'));
+	public function create_csv_upload_form() {
+		$content = include_once('partials/twilio-csv-public-display.php');
+		print($content);
+		return $content;
 	}
 	
 	public function twilio_csv_register_shortcodes() {
 		add_shortcode('create_csv_upload_form', array($this, 'create_csv_upload_form'));
-		add_shortcode('print_some_stuff', array($this, 'print_some_stuff'));
 	}
 } //  classTwilio_Csv_Public()
 ?>
