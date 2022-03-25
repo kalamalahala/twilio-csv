@@ -173,7 +173,8 @@ class Twilio_Csv_Public {
 				$sheet_data_as_json = json_encode($json_rows);
 
 				print('<pre>');
-				print_r($json_rows);
+				// print_r($json_rows);
+				print_r($json_rows[0]);
 				print('</pre>');
 				
 				$dim = $xlsx->dimension();
@@ -193,7 +194,7 @@ class Twilio_Csv_Public {
 					//      if ($k == 0) continue; // skip first row
 					$list_csv_contents .= '<tr>';
 					for ($i = 0; $i < $cols; $i ++) {
-						$list_csv_contents .= '<td>' . ( isset($k[$i][$r]) ? $k[$i][$r] : '&nbsp;' ) . '</td>';
+						$list_csv_contents .= '<td>' . ( isset($json_rows[$k][$r]) ? $json_rows[$k][$r] : 'zzz' ) . '</td>';
 					}
 					$list_csv_contents .= '</tr>';
 					$row_count++;
