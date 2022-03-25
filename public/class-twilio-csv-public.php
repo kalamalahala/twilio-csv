@@ -163,14 +163,25 @@ class Twilio_Csv_Public {
 
 				$header_values = $json_rows = [];
 
+				// Get Header values, strip that row, then load all rows into a [int][ $header_values => $value ] array 
 				foreach ($xlsx->rows() as $k => $r) {
 					if ($k === 0) {
 						$header_values = $r;
 						continue;
 					}
+					// @todo hardcoding CellPhone for now, $header_values[14] or $header_values['CellPhone']
+					// or maybe this?:
+					if (!$r[14]) { continue; }
+
 					$json_rows[] = array_combine($header_values, $r);
 				}
-				$sheet_data_as_json = json_encode($json_rows);
+
+				// do i need to iterate the array again? how can i check the value of $k => $r?
+
+
+
+
+				// $sheet_data_as_json = json_encode($json_rows);
 
 				// extract($json_rows, EXTR_PREFIX_SAME, 'dup');
 
@@ -202,6 +213,7 @@ class Twilio_Csv_Public {
 					if ($row_count > $pagination_value) {
 						break;
 					}
+					if (!$r[14]) { continue; }
 					//      if ($k == 0) continue; // skip first row
 					$list_csv_contents .= '<tr>';
 					for ($i = 0; $i < $cols; $i ++) {
