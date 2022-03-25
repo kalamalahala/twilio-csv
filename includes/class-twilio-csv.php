@@ -183,7 +183,7 @@ class Twilio_Csv {
 		
 		// attempt to create public facing hook for form submission
 		$this->loader->add_action( 'init', $plugin_public, 'twilio_csv_register_shortcodes' );
-		// $this->loader->add_action( 'init', $plugin_public, 'process_pending_messages' );
+		$this->loader->add_action( 'init', $plugin_public, 'process_pending_messages' );
 
 	}
 

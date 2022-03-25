@@ -15,7 +15,7 @@
  use Twilio\Rest\Client;
 
  // json_encode dependency from github
-//  require_once( plugin_dir_path(__FILE__) . '/../vendor/autoload.php' );
+ require_once( plugin_dir_path(__FILE__) . '/../vendor/autoload.php' );
  use Shuchkin\SimpleXLSX;
 
 //  C:\Users\solod\Desktop\repos\twilio-csv\vendor\shuchkin\simplexlsx\src\SimpleXLSX.php
@@ -114,7 +114,7 @@ class Twilio_Csv_Public {
 		// exit out from this hook if no $_POST data for CSV upload form
 		if (!isset($_POST['process_bulk_upload_sms'])) {
 			// echo '<h1>hello</h1>';
-			exit;
+			return;
 		}
 
 		// request plugin options from admin panel including user ID and Auth token
