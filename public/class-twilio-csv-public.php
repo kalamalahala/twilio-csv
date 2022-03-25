@@ -161,17 +161,19 @@ class Twilio_Csv_Public {
 		if (isset($_FILES['csv-upload'])) {
 			if ($xlsx = SimpleXLSX::parse($_FILES['csv-upload']['tmp_name'])) {
 
-				$header_values = $rows = [];
+				$header_values = $json_rows = [];
 
 				foreach ($xlsx->rows() as $k => $r) {
 					if ($k === 0) {
 						$header_values = $r;
 						continue;
 					}
-					$rows[] = array_combine($header_values, $r);
+					$json_rows[] = array_combine($header_values, $r);
 				}
-				$sheet_data_as_json = json_encode($rows);
-				print_r($sheet_data_as_json);
+				$sheet_data_as_json = json_encode($json_rows);
+
+
+				// print_r($sheet_data_as_json);
 				
 				$dim = $xlsx->dimension();
 				$cols = $dim[0];
@@ -183,7 +185,7 @@ class Twilio_Csv_Public {
 				$list_csv_contents .= '<table border="1" cellpadding="3" style="border-collapse: collapse">';
 
 				$row_count = 0;
-				foreach ($xlsx->readRows() as $k => $r) {
+				foreach ($json_rows as $k => $r) {
 					if ($row_count > $pagination_value) {
 						break;
 					}
