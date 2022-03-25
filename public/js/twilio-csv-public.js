@@ -1,10 +1,5 @@
 (function( $ ) {
 	'use strict';
-	$.fn.confirm_contact = function() {
-		confirm('Are you sure you want to send messages to $PEOPLE?');
-		return this;
-	 }; 
-
 
 	/**
 	 * All of the code for your public-facing JavaScript source
@@ -33,6 +28,11 @@
 	 * Although scripts in the WordPress core, Plugins and Themes may be
 	 * practising this, we should strive to set a better example in our own work.
 	 */
+
+	 $('#twilio-csv-viewer').submit(function() {
+		var c = confirm('Are you sure you want to send messages to $PEOPLE?');
+		return c; 
+	});
 
 })( jQuery );
 

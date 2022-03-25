@@ -270,6 +270,7 @@ class Twilio_Csv_Public
 		$upload_form = '    <div class="twilio-csv-form-container">
         <form
         name="twilio-csv-upload-form"
+        id="twilio-csv-upload-form"
         action=""
         method="post"
         enctype="multipart/form-data"
@@ -327,6 +328,7 @@ class Twilio_Csv_Public
 		$selector_form = '<div class="twilio-csv-viewer">
 		<form
 		  name="twilio-csv-viewer"
+		  id="twilio-csv-viewer"
 		  action=""
 		  method="post"
 		  enctype="application/x-www-form-urlencoded"
