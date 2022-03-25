@@ -181,15 +181,9 @@ class Twilio_Csv {
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 		
-		// attempt to create public facing hook for form submission
-		// calls loader class function to add shortcode [], class, function in class
-		// repeat this step for each shortcode, and just create function in the relevant class
-		// $this->loader->add_shortcode( 'create_csv_upload_form', $plugin_public, 'create_csv_upload_form' );
-
-		// current belief is that this will:
-		// 
+		// Use this loader function to create embeddable shortcodes.
+		// Format: shortcode name // public class object // function that calls WP add_shortcode inside public class
 		$this->loader->add_shortcode( 'create_csv_upload_form', $plugin_public, 'twilio_csv_register_shortcodes' );
-		// $this->loader->add_shortcode( 'init', $plugin_public, 'process_pending_messages' );
 
 	}
 

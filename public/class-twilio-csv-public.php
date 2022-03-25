@@ -146,14 +146,12 @@ class Twilio_Csv_Public {
 			return $content;
 		}
 
-		
 	}
-	// add_shortcode('print_some_stuff', array($this, 'print_some_stuff'));
+
 
 	// this is now the shortcode function registered in the public class
 	public function create_csv_upload_form() {
-		// $content = include_once('partials/twilio-csv-public-display.php');
-		$content = '<h3>This should be the raw output of ' . (($_GET['string']) ? $_GET['string'] : 'html') . '</h3>';
+		$content = include('partials/twilio-csv-public-display.php');
 		return $content;
 	}
 
@@ -161,8 +159,5 @@ class Twilio_Csv_Public {
 		add_shortcode( 'create_csv_upload_form', array( $this, 'create_csv_upload_form' ) );
 	}
 	
-	// public function twilio_csv_register_shortcodes() {
-	// 	add_shortcode('create_csv_upload_form', array($this, 'create_csv_upload_form'));
-	// }
 } //  classTwilio_Csv_Public()
 ?>
