@@ -115,9 +115,10 @@ class Twilio_Csv_Public {
 
 		global $wpdb;
 		$csv_table = $wpdb->prefix.'twilio_csv_entries';
+		$date = date('c', strtotime('today'));
 		$csv_data = array(
 			'id' => '',
-			'date' => '',
+			'date' => $date,
 			'contact_data' => $contact_data,
 			'num_entries' => $num_entries,
 			'send_count' => 0,
@@ -282,7 +283,26 @@ class Twilio_Csv_Public {
 	return $upload_form;
 	}
 
-	public function select_uploaded_csv_files() {
+	public function select_uploaded_csv_files( $atts ) {
+		// sets atts and initial array of options to ten and zero
+		$atts = shortcode_atts(array(
+			'pagination' => 10
+		), $atts, 'select_uploaded_csv_files');
+		$option_group = '';
+
+		// go get entries from database
+		global $wpdb;
+		$csv_table = $wpdb->prefix.'twilio_csv_entries';
+		$table_contents = $wpdb->get_results('SELECT * FROM ' . $csv_table);
+
+		// loop table_contents into option group
+		foreach ($table_contents as $entry) {
+			$option_group .= '<option value="' . $entry['id'] . '">' . $entry['date'] . '</option>';
+		}
+
+
+
+		// form HTML with looped option group
 		$selector_form = '<div class="twilio-csv-viewer">
 		<form
 		  name="twilio-csv-viewer"
@@ -293,7 +313,7 @@ class Twilio_Csv_Public {
 		  <div class="view-section">
 			<label for="csv-select">Select Uploaded CSV</label>
 			<select type="select" id="csv-select" name="csv-select">
-			  <option value="">dfasdklfasdflkm</option>
+			  ' . $option_group . '
 			  </select>
 			  <div class="submit-contacts-to-twilio">
 				<input type="submit" value="Submit" name="csv-submit" />
