@@ -151,8 +151,8 @@ class Twilio_Csv_Public {
 
 	// this is now the shortcode function registered in the public class
 	public function create_csv_upload_form() {
-		$content = include('partials/twilio-csv-public-display.php');
-		return $content;
+		$content = require('partials/twilio-csv-public-display.php');
+		print($content);
 	}
 
 	function twilio_csv_register_shortcodes() {
