@@ -282,7 +282,7 @@ class Twilio_Csv_Public {
 	return $upload_form;
 	}
 
-	function select_uploaded_csv_files() {
+	public function select_uploaded_csv_files() {
 		return '<div class="twilio-csv-viewer">
 		<form
 		  name="twilio-csv-viewer"
