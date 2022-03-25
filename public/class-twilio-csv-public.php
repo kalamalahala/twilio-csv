@@ -177,13 +177,21 @@ class Twilio_Csv_Public {
 				print('<pre>');
 				// print_r($json_rows);
 				print_r($json_rows[0]);				
-				print_r($json_rows[1]);				
+				print_r($json_rows[1]);
+				var_dump($header_values);				
 				print('</pre>');
 				
 				$dim = $xlsx->dimension();
 				$cols = $dim[0];
 				$pagination_value = $atts['pagination'];
 				$rows = $dim[1] - 1;
+
+
+				// create associative array of Column Names
+				// $sheet_columns = array();
+				// for ($i = 0; $i < $cols; $i ++) {
+				// 	$sheet_columns .= isset($json_rows[$k][$r]) ? $json_rows[$k][$r] : 'zzz' ) . '</td>';
+				// }
 				
 				$list_csv_contents .= '<h2>Contents of File</h2>';
 				$list_csv_contents .= '<p>' . $rows . ' entries in file. Displaying ' . $pagination_value .' per page.</p>';
