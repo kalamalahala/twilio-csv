@@ -1,9 +1,7 @@
 (function( $ ) {
 	'use strict';
 
-	function confirm_contact() {
-		confirm('Are you sure you want to send messages to $PEOPLE?');
-	}
+
 
 	/**
 	 * All of the code for your public-facing JavaScript source
@@ -34,3 +32,8 @@
 	 */
 
 })( jQuery );
+
+
+function confirm_contact() {
+	confirm('Are you sure you want to send messages to $PEOPLE?');
+}
