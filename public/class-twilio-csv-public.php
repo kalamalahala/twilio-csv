@@ -192,7 +192,7 @@ class Twilio_Csv_Public {
 					//      if ($k == 0) continue; // skip first row
 					$list_csv_contents .= '<tr>';
 					for ($i = 0; $i < $cols; $i ++) {
-						$list_csv_contents .= '<td>' . ( isset($r[ $i ]) ? $r[ $i ] : '&nbsp;' ) . '</td>';
+						$list_csv_contents .= '<td>' . ( isset($r) ? $r : '&nbsp;' ) . '</td>';
 					}
 					$list_csv_contents .= '</tr>';
 					$row_count++;
