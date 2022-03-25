@@ -282,9 +282,20 @@ class Twilio_Csv_Public {
 	return $upload_form;
 	}
 
-	function twilio_csv_register_shortcodes() {
+	function select_uploaded_csv_files() {
+		return 'hello';
+	}
+
+	function twilio_csv_register_shortcodes_create() {
 		add_shortcode( 'create_csv_upload_form', array( $this, 'create_csv_upload_form' ) );
 	}
+
+
+	function twilio_csv_register_shortcodes_view() {
+		add_shortcode( 'select_uploaded_csv_files', array( $this, 'select_uploaded_csv_files' ) );
+	}
+
+
 	
 } //  classTwilio_Csv_Public()
 ?>
