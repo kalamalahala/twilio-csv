@@ -213,7 +213,7 @@ class Twilio_Csv_Public {
 					if ($row_count > $pagination_value) {
 						break;
 					}
-					if (!$r[14]) { continue; }
+					if (!$r['CellPhone']) { continue; }
 					//      if ($k == 0) continue; // skip first row
 					$list_csv_contents .= '<tr>';
 					for ($i = 0; $i < $cols; $i ++) {
