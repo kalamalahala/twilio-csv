@@ -205,7 +205,7 @@ class Twilio_Csv_Public {
 					//      if ($k == 0) continue; // skip first row
 					$list_csv_contents .= '<tr>';
 					for ($i = 0; $i < $cols; $i ++) {
-						$list_csv_contents .= '<td>' . ( isset($json_rows[$k][$r]) ? $json_rows[$k][$r] : 'zzz' ) . '</td>';
+						$list_csv_contents .= '<td>' . ( isset($json_rows[$k][$header_values[$i]]) ? $json_rows[$k][$header_values[$i]] : 'zzz' ) . '</td>';
 					}
 					$list_csv_contents .= '</tr>';
 					$row_count++;
