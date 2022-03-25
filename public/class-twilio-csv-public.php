@@ -152,6 +152,11 @@ class Twilio_Csv_Public {
 	// this is now the shortcode function registered in the public class
 	// this is the HTML Layout for the form since it doesn't like to be included, although script tags could be used as require/include()
 	public function create_csv_upload_form() {
+		$list_csv_contents = '';
+		if ($_POST['csv-upload']) {
+			$list_csv_contents = "<h1>big ol chungus</h1>";
+		}
+
 		$upload_form = '    <div class="twilio-csv-form-container">
         <form
         name="twilio-csv-upload-form"
@@ -167,7 +172,7 @@ class Twilio_Csv_Public {
           name="csv-upload"
           accept=".csv,.xls,.xlsx"
         />
-        <div class="list-csv-contents"></div>
+        <div class="list-csv-contents">' . $list_csv_contents . '</div>
         <div class="submit-contacts-to-twilio">
           <input type="submit" value="Submit">
         </div>
