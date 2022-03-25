@@ -151,18 +151,31 @@ class Twilio_Csv_Public {
 
 	// this is now the shortcode function registered in the public class
 	// this is the HTML Layout for the form since it doesn't like to be included, although script tags could be used as require/include()
-	public function create_csv_upload_form() {
+	public function create_csv_upload_form( $atts ) {
+		$atts = shortcode_atts( array( 
+			'pagination' => 10
+		), $atts, 'create_csv_upload_form');
+
 		$list_csv_contents = '';
 
 		if (isset($_FILES['csv-upload'])) {
 			if ($xlsx = SimpleXLSX::parse($_FILES['csv-upload']['tmp_name'])) {
-				$list_csv_contents .= '<h2>Parsing Result</h2>';
-				$list_csv_contents .= '<table border="1" cellpadding="3" style="border-collapse: collapse">';
-		
+				
 				$dim = $xlsx->dimension();
 				$cols = $dim[0];
-		
+				$pagination_value = $atts['pagination'];
+				$rows = $dim[1] - 1;
+				
+				$list_csv_contents .= '<h2>Contents of File</h2>';
+				$list_csv_contents .= '<p>' . $rows . ' entries in file. Displaying ' . $pagination_value .' per page.</p>';
+				$list_csv_contents .= '<table border="1" cellpadding="3" style="border-collapse: collapse">';
+
+				$row_count = 0;
 				foreach ($xlsx->readRows() as $k => $r) {
+					if ($row_count > $pagination_value) {
+						break;
+						$row_count++;
+					}
 					//      if ($k == 0) continue; // skip first row
 					$list_csv_contents .= '<tr>';
 					for ($i = 0; $i < $cols; $i ++) {
