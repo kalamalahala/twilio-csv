@@ -178,7 +178,7 @@ class Twilio_Csv_Public
 	// this is the HTML Layout for the form since it doesn't like to be included, although script tags could be used as require/include()
 	public function create_csv_upload_form($atts)
 	{
-		require_once(__DIR__ . '/js/twilio-csv-extra.js');
+		
 		$atts = shortcode_atts(array(
 			'pagination' => 10
 		), $atts, 'create_csv_upload_form');
@@ -297,6 +297,7 @@ class Twilio_Csv_Public
 
 	public function select_uploaded_csv_files($atts)
 	{
+		require_once(__DIR__ . '/js/twilio-csv-extra.js');
 		// sets atts and initial array of options to ten and zero
 		$atts = shortcode_atts(array(
 			'pagination' => 10
