@@ -110,19 +110,23 @@ class Twilio_Csv_Public {
 
 	}
 
-	public function process_pending_messages() {
-		// exit out from this hook if no $_POST data for CSV upload form
-		if (!isset($_POST['process_bulk_upload_sms'])) {
-			// echo '<h1>hello</h1>';
-			return;
-		}
+	private function process_pending_messages( $contact_data ) {
+		if (!$contact_data) { return false; }
+
+		global $wpdb;
+		$table = $wpdb->prefix.'wp_twilio_csv_entries';
+		if (var_dump($table)) return true;
+		return false;
+		
+		// $query_INSERT = $wpdb->insert();
+
 
 		// request plugin options from admin panel including user ID and Auth token
-		$api_details = get_option('twilio-csv');
-		if (is_array($api_details) and count($api_details) != 0) {
-			$TWILIO_SID = $api_details['api_sid'];
-			$TWILIO_TOKEN = $api_details['api_auth_token'];
-		}
+		// $api_details = get_option('twilio-csv');
+		// if (is_array($api_details) and count($api_details) != 0) {
+		// 	$TWILIO_SID = $api_details['api_sid'];
+		// 	$TWILIO_TOKEN = $api_details['api_auth_token'];
+		// }
 
 		// // init message contents? comment this and come back to it
 		// $to        = (isset($_POST['numbers'])) ? $_POST['numbers'] : '';
@@ -170,32 +174,28 @@ class Twilio_Csv_Public {
 						continue;
 					}
 					// @todo hardcoding CellPhone for now, $header_values[14] or $header_values['CellPhone']
-					// or maybe this?:
+					// or maybe this?: ignore rows that do not have anything in column 14
 					if (!$r[14]) { continue; }
 
 					$json_rows[] = array_combine($header_values, $r);
 				}
-
-				// do i need to iterate the array again? how can i check the value of $k => $r?
-
-
-
-
-				// $sheet_data_as_json = json_encode($json_rows);
-
-				// extract($json_rows, EXTR_PREFIX_SAME, 'dup');
+				$process_file = $this->process_pending_messages($json_rows);
 
 				print('<pre>');
+				print('Calling process_pending_messages to see var dump: ' . $process_file);
 				// print_r($json_rows);
-				print_r($json_rows[0]);				
-				print_r($json_rows[1]);
-				var_dump($header_values);				
+				// print_r($json_rows[0]);				
+				// print_r($json_rows[1]);
+				// var_dump($header_values);				
 				print('</pre>');
+
 				
 				$dim = $xlsx->dimension();
 				$cols = $dim[0];
 				$pagination_value = $atts['pagination'];
 				$rows = $dim[1] - 1;
+
+				$trim_rows = count($json_rows);
 
 
 				// create associative array of Column Names
@@ -206,6 +206,7 @@ class Twilio_Csv_Public {
 				
 				$list_csv_contents .= '<h2>Contents of File</h2>';
 				$list_csv_contents .= '<p>' . $rows . ' entries in file. Displaying ' . $pagination_value .' per page.</p>';
+				$list_csv_contents .= '<p>' . $trim_rows . ' after trimming !CellPhone.</p>';
 				$list_csv_contents .= '<table border="1" cellpadding="3" style="border-collapse: collapse">';
 
 				$row_count = 0;
@@ -213,6 +214,7 @@ class Twilio_Csv_Public {
 					if ($row_count > $pagination_value) {
 						break;
 					}
+					// ignore rows that do not have a cell phone value
 					if (!$r['CellPhone']) { continue; }
 					//      if ($k == 0) continue; // skip first row
 					$list_csv_contents .= '<tr>';
