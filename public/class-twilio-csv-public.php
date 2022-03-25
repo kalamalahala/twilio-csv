@@ -283,7 +283,7 @@ class Twilio_Csv_Public {
 	}
 
 	public function select_uploaded_csv_files() {
-		return '<div class="twilio-csv-viewer">
+		$selector_form = '<div class="twilio-csv-viewer">
 		<form
 		  name="twilio-csv-viewer"
 		  action=""
@@ -302,6 +302,7 @@ class Twilio_Csv_Public {
 		  </form>
 		  <div class="api-information"></div>
 	  </div>';
+		return $selector_form;
 	}
 
 	function twilio_csv_register_shortcodes_create() {
@@ -309,7 +310,7 @@ class Twilio_Csv_Public {
 	}
 
 
-	function twilio_csv_register_shortcodes_view() {
+	function twilio_csv_register_shortcodes_select() {
 		add_shortcode( 'select_uploaded_csv_files', array( $this, 'select_uploaded_csv_files' ) );
 	}
 
