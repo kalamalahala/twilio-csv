@@ -304,10 +304,10 @@ class Twilio_Csv_Public {
 		print('</pre>');
 
 		// // loop table_contents into option group
-		// foreach ($table_contents as $entry) {
+		foreach ($table_contents as $entry) {
 			
-		// 	$option_group .= '<option value="' . $entry['id'] . '">' . $entry['date'] . '</option>';
-		// }
+			$option_group .= '<option value="' . $entry->id . '">' . $entry->date . '</option>';
+		}
 
 
 
