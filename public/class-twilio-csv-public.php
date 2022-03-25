@@ -160,6 +160,17 @@ class Twilio_Csv_Public {
 
 		if (isset($_FILES['csv-upload'])) {
 			if ($xlsx = SimpleXLSX::parse($_FILES['csv-upload']['tmp_name'])) {
+
+				$header_values = $rows = [];
+
+				foreach ($xlsx->rows() as $k => $r) {
+					if ($k === 0) {
+						$header_values = $r;
+						continue;
+					}
+					$rows[] = array_combine($header_values, $r);
+				}
+				var_dump($rows);
 				
 				$dim = $xlsx->dimension();
 				$cols = $dim[0];
