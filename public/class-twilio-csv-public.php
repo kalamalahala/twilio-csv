@@ -311,7 +311,7 @@ class Twilio_Csv_Public
 		// loop table_contents into option group
 		$entry_array = array();
 		foreach ($table_contents as $entry) {
-			$entry_array .= json_decode($entry->contact_data);
+			$entry_array = json_decode($entry->contact_data);
 			$option_group .= '<option value="' . $entry->id . '">' . $entry->date . '</option>';
 		}
 
