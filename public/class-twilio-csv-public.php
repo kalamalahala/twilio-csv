@@ -335,8 +335,10 @@ class Twilio_Csv_Public
 			<select type="select" id="csv-select" name="csv-select">
 			  ' . $option_group . '
 			  </select>
+			  <div class="confirm-twilio"><input type="checkbox" value="confirm" name="confirm-twilio">
+			  <label for="confirm-twilio">Send recruitment message?</label></div>
 			  <div class="submit-contacts-to-twilio">
-				<input type="submit" value="Submit" name="csv-submit" />
+				<input type="submit" value="Submit" name="csv-submit" onclick="confirm_contact();" />
 			  </div>
 			</div>
 		  </form>
