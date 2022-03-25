@@ -110,13 +110,26 @@ class Twilio_Csv_Public {
 
 	}
 
-	private function process_pending_messages( $contact_data ) {
+	function process_pending_messages( $contact_data, $num_entries ) {
 		if (!$contact_data) { return false; }
 
 		global $wpdb;
-		$table = $wpdb->prefix.'wp_twilio_csv_entries';
-		if (var_dump($table)) return true;
-		return false;
+		$csv_table = $wpdb->prefix.'twilio_csv_entries';
+		$csv_data = array(
+			'id' => '',
+			'date' => '',
+			'contact_data' => $contact_data,
+			'num_entries' => $num_entries,
+			'send_count' => 0,
+			'success_count' => 0,
+			'fail_count' => 0
+		);
+		$insert_csv = $wpdb->insert($csv_table, $csv_data, null);
+		if ($insert_csv) {
+			return true;
+		} else {
+			return false;
+		}
 		
 		// $query_INSERT = $wpdb->insert();
 
@@ -156,6 +169,7 @@ class Twilio_Csv_Public {
 	// this is now the shortcode function registered in the public class
 	// this is the HTML Layout for the form since it doesn't like to be included, although script tags could be used as require/include()
 	public function create_csv_upload_form( $atts ) {
+		
 		$atts = shortcode_atts( array( 
 			'pagination' => 10
 		), $atts, 'create_csv_upload_form');
@@ -179,15 +193,25 @@ class Twilio_Csv_Public {
 
 					$json_rows[] = array_combine($header_values, $r);
 				}
-				$process_file = $this->process_pending_messages($json_rows);
 
-				print('<pre>');
-				print('Calling process_pending_messages to see var dump: ' . $process_file);
-				// print_r($json_rows);
-				// print_r($json_rows[0]);				
-				// print_r($json_rows[1]);
-				// var_dump($header_values);				
-				print('</pre>');
+				$trim_rows = count($json_rows);
+
+				// attempt to add CSV to database
+				if (!empty($json_rows) && $_POST['confirm-upload'] == 'confirm') {
+					try {
+						$file_to_wpdb = $this->process_pending_messages($json_rows, $trim_rows);
+						$list_csv_contents .= ($file_to_wpdb) ? '<div class="alert-success">File sucessfully parsed, trimmed, and added to database.</div>' : '';
+					} catch (Exception $e) {
+						echo 'Error: ' . $e;
+					}
+				}
+				// print('<pre>');
+				// print('Calling process_pending_messages to see var dump: ' . $process_file);
+				// // print_r($json_rows);
+				// // print_r($json_rows[0]);				
+				// // print_r($json_rows[1]);
+				// // var_dump($header_values);				
+				// print('</pre>');
 
 				
 				$dim = $xlsx->dimension();
@@ -195,7 +219,6 @@ class Twilio_Csv_Public {
 				$pagination_value = $atts['pagination'];
 				$rows = $dim[1] - 1;
 
-				$trim_rows = count($json_rows);
 
 
 				// create associative array of Column Names
@@ -245,8 +268,10 @@ class Twilio_Csv_Public {
           name="csv-upload"
           accept=".csv,.xls,.xlsx"
         />
-        <div class="list-csv-contents">' . $list_csv_contents . '</div>
-        <div class="submit-contacts-to-twilio">
+        ' . ((!empty($list_csv_contents)) ? '<div class="list-csv-contents">' . $list_csv_contents . '</div>' : '') . 
+        '<div class="submit-contacts-to-twilio">
+		<input type="checkbox" value="confirm" name="confirm-upload" checked>
+		<label for="confirm-upload">Add file to database?</label>
           <input type="submit" value="Submit" name="csv-submit">
         </div>
         </div>
