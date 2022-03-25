@@ -293,12 +293,17 @@ class Twilio_Csv_Public {
 		// go get entries from database
 		global $wpdb;
 		$csv_table = $wpdb->prefix.'twilio_csv_entries';
-		$table_contents = $wpdb->get_results('SELECT * FROM ' . $csv_table);
+		$table_contents = $wpdb->get_results('SELECT * FROM ' . $csv_table . ';');
 
-		// loop table_contents into option group
-		foreach ($table_contents as $entry) {
-			$option_group .= '<option value="' . $entry['id'] . '">' . $entry['date'] . '</option>';
-		}
+		var_dump($table_contents);
+
+		// $entry_array = json_decode($table_contents);
+
+		// // loop table_contents into option group
+		// foreach ($table_contents as $entry) {
+			
+		// 	$option_group .= '<option value="' . $entry['id'] . '">' . $entry['date'] . '</option>';
+		// }
 
 
 
