@@ -154,9 +154,26 @@ class Twilio_Csv_Public {
 	public function create_csv_upload_form() {
 		$list_csv_contents = '';
 
-		if ($_FILES['csv-upload']) {
-			$list_csv_contents = '<h3>input field included in a POST/FILES header</h3>';
-			var_dump($_FILES['csv-upload']);
+		if (isset($_FILES['csv-upload'])) {
+			if ($xlsx = SimpleXLSX::parse($_FILES['csv-upload']['tmp_name'])) {
+				echo '<h2>Parsing Result</h2>';
+				echo '<table border="1" cellpadding="3" style="border-collapse: collapse">';
+		
+				$dim = $xlsx->dimension();
+				$cols = $dim[0];
+		
+				foreach ($xlsx->readRows() as $k => $r) {
+					//      if ($k == 0) continue; // skip first row
+					echo '<tr>';
+					for ($i = 0; $i < $cols; $i ++) {
+						echo '<td>' . ( isset($r[ $i ]) ? $r[ $i ] : '&nbsp;' ) . '</td>';
+					}
+					echo '</tr>';
+				}
+				echo '</table>';
+			} else {
+				echo SimpleXLSX::parseError();
+			}
 		}
 
 		$upload_form = '    <div class="twilio-csv-form-container">
