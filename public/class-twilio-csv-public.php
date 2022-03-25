@@ -297,7 +297,7 @@ class Twilio_Csv_Public
 
 	public function select_uploaded_csv_files($atts)
 	{
-		require_once(__DIR__ . '/js/twilio-csv-extra.js');
+		// require_once(__DIR__ . '/js/twilio-csv-extra.js');
 		// sets atts and initial array of options to ten and zero
 		$atts = shortcode_atts(array(
 			'pagination' => 10

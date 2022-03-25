@@ -1,6 +1,9 @@
 (function( $ ) {
 	'use strict';
-
+	$.fn.confirm_contact = function() {
+		confirm('Are you sure you want to send messages to $PEOPLE?');
+		return this;
+	 }; 
 
 
 	/**
