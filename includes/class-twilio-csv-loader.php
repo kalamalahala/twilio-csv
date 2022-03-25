@@ -149,7 +149,7 @@ class Twilio_Csv_Loader {
 		}
 
 		foreach ( $this->shortcodes as $hook ) {
-            add_shortcode( $hook['hook'], array( $hook['component'], $hook['callback'], $hook['priority'], $hook['accepted_args'] ) );
+            add_shortcode( $hook['hook'], array( $hook['component'], $hook['callback'] ), $hook['priority'], $hook['accepted_args'] );
         }
 
 	}

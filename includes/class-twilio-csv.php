@@ -185,6 +185,9 @@ class Twilio_Csv {
 		// calls loader class function to add shortcode [], class, function in class
 		// repeat this step for each shortcode, and just create function in the relevant class
 		// $this->loader->add_shortcode( 'create_csv_upload_form', $plugin_public, 'create_csv_upload_form' );
+
+		// current belief is that this will:
+		// 
 		$this->loader->add_shortcode( 'create_csv_upload_form', $plugin_public, 'twilio_csv_register_shortcodes' );
 		// $this->loader->add_shortcode( 'init', $plugin_public, 'process_pending_messages' );
 
