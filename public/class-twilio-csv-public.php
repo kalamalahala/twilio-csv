@@ -339,6 +339,7 @@ class Twilio_Csv_Public
 			<select type="select" id="csv-select" name="csv-select">
 			  ' . $option_group . '
 			  </select>
+			  <div class="twilio-body"><label for="body">Message Body</label><input type="textarea" name="body" maxlength="155" placeholder="Type your message body here..." required /></div>
 			  <div class="confirm-twilio"><input type="checkbox" value="confirm" name="confirm-twilio">
 			  <label for="confirm-twilio">Send recruitment message?</label></div>
 			  <div class="submit-contacts-to-twilio">
@@ -355,6 +356,7 @@ class Twilio_Csv_Public
 		// jump out if this was accessed without proper post data
 		if (!$_POST['csv-submit']) return 'Form was not submitted.';
 		if ($_POST['confirm-twilio'] !== 'confirm') return 'Confirmation box wasn\'t checked.';
+		if (!$_POST['body']) return 'No message to send!';
 
 		// start tracking execution time
 		$start_time = microtime(true);
@@ -367,14 +369,35 @@ class Twilio_Csv_Public
 			$contact_array = json_decode($entry->contact_data);	
 		}
 		
-		$recipients = array();
+		// establish API credientials
+		$api_details = get_option('twilio-csv');
+		if (is_array($api_details) and count($api_details) != 0) {
+			$TWILIO_SID = $api_details['api_sid'];
+			$TWILIO_TOKEN = $api_details['api_auth_token'];
+			// $TWILIO_SENDING_NUMBER = $api_details['sending_number'];
+		}
+		$client = new Client($TWILIO_SID, $TWILIO_TOKEN);
+
+		$TWILIO_MESSAGE_BODY = $_POST['body'];
+
 		foreach ($contact_array as $contact) {
-			$cell_phone = $contact->CellPhone;
-			$binding = json_encode(['binding_type' => 'sms', 'address' => $cell_phone]);
-			array_push($recipients, $binding);
+			$recipient = $contact->CellPhone;
+			try {
+				$send_message = $client->messages->create(
+					$recipient,
+					[
+						'body' => $TWILIO_MESSAGE_BODY,
+						'from' => $TWILIO_SID
+					]
+				);
+			} catch (false) {
+
+			}
+			// $binding = json_encode(['binding_type' => 'sms', 'address' => $recipient]);
+			// array_push($recipients, $binding);
 		}
 		
-		var_dump($recipients);
+		// var_dump($recipients);
 		// var_dump($contact_array);
 		
 
@@ -382,15 +405,9 @@ class Twilio_Csv_Public
 		// $sender_id = (isset($_POST['sender']))  ? $_POST['sender']  : '';
 		// $message   = (isset($_POST['message'])) ? $_POST['message'] : '';
 
-		// $api_details = get_option('twilio-csv');
-		// if (is_array($api_details) and count($api_details) != 0) {
-		// 	$TWILIO_SID = $api_details['api_sid'];
-		// 	$TWILIO_TOKEN = $api_details['api_auth_token'];
-		// }
 		// try{
 		// 	// $to = explode(',', $to);
 
-		// 	$client = new Client($TWILIO_SID, $TWILIO_TOKEN);
 
 		// 	  $response = $client->messages->create(
 		// 			$to,
