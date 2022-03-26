@@ -359,9 +359,9 @@ class Twilio_Csv_Public
 		// go get relevant JSON data and decode
 		global $wpdb;
 		$csv_table = $wpdb->prefix . 'twilio_csv_entries';
-		$contact_list_json = $wpdb->get_results('SELECT contact_data FROM ' . $csv_table . ' WHERE id=' . $_POST['csv-select'] . ';');
-		$contact_array = json_decode($contact_list_json);
-		var_dump($contact_list_json);
+		$results = $wpdb->get_results('SELECT contact_data FROM ' . $csv_table . ' WHERE id=' . $_POST['csv-select'] . ';');
+		$contact_array = json_decode($results->contact_data);
+		var_dump($results);
 		var_dump($contact_array);
 
 
