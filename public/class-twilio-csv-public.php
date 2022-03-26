@@ -329,7 +329,7 @@ class Twilio_Csv_Public
 		<form
 		  name="twilio-csv-viewer"
 		  id="twilio-csv-viewer"
-		  action="' . $embedded_page .'/?mode=send"
+		  action="' . $embedded_page .'?mode=send"
 		  method="post"
 		  enctype="application/x-www-form-urlencoded"
 		  onsubmit="return confirm(\'Do you really want to submit the form?\');"
