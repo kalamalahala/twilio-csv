@@ -30,7 +30,7 @@
 	 */
 
 	 $('#twilio-csv-viewer').submit(function() {
-		var c = confirm('Are you sure you want to send messages to $PEOPLE?');
+		const c = confirm('Are you sure you want to send messages to $PEOPLE?');
 		return c; 
 	});
 
