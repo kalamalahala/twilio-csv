@@ -361,6 +361,7 @@ class Twilio_Csv_Public
 		$csv_table = $wpdb->prefix . 'twilio_csv_entries';
 		$contact_list_json = $wpdb->get_results('SELECT contact_data FROM ' . $csv_table . ' WHERE id=' . $_POST['csv-select'] . ';');
 		$contact_array = json_decode($contact_list_json);
+		var_dump($contact_list_json);
 		var_dump($contact_array);
 
 
