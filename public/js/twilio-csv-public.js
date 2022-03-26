@@ -29,9 +29,9 @@
 	 * practising this, we should strive to set a better example in our own work.
 	 */
 
-	 $('#twilio-csv-viewer').submit(function() {
-		confirm('Are you sure you want to send messages to $PEOPLE?'); 
-	});
+	//  $('#twilio-csv-viewer').submit(function() {
+	// 	confirm('Are you sure you want to send messages to $PEOPLE?'); 
+	// });
 
 })( jQuery );
 

@@ -332,6 +332,7 @@ class Twilio_Csv_Public
 		  action=""
 		  method="post"
 		  enctype="application/x-www-form-urlencoded"
+		  onsubmit="return confirm(\'Do you really want to submit the form?\');"
 		>
 		  <div class="view-section">
 			<label for="csv-select">Select Uploaded CSV</label>
