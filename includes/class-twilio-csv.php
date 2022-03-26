@@ -185,6 +185,7 @@ class Twilio_Csv {
 		// Format: shortcode name // public class object // function that calls WP add_shortcode inside public class
 		$this->loader->add_shortcode( 'create_csv_upload_form', $plugin_public, 'twilio_csv_register_shortcodes_create' );
 		$this->loader->add_shortcode( 'select_uploaded_csv_files', $plugin_public, 'twilio_csv_register_shortcodes_select' );
+		$this->loader->add_shortcode( 'twilio_csv_show_results', $plugin_public, 'twilio_csv_register_shortcodes_send' );
 
 	}
 

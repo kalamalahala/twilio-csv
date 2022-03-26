@@ -351,6 +351,48 @@ class Twilio_Csv_Public
 		return $selector_form;
 	}
 
+	public function twilio_csv_show_results() {
+		// jump out if this was accessed without proper post data
+		if (!$_POST['csv-submit']) return;
+		if ($_POST['confirm-twilio'] !== 'confirm') return;
+
+		// go get relevant JSON data and decode
+		global $wpdb;
+		$csv_table = $wpdb->prefix . 'twilio_csv_entries';
+		$contact_list_json = $wpdb->get_results('SELECT contact_data FROM ' . $csv_table . ' WHERE id=' . $_POST['csv-select'] . ';');
+		$contact_array = json_decode($contact_list_json);
+		var_dump($contact_array);
+
+
+		// $to        = (isset($_POST['numbers'])) ? $_POST['numbers'] : '';
+		// $sender_id = (isset($_POST['sender']))  ? $_POST['sender']  : '';
+		// $message   = (isset($_POST['message'])) ? $_POST['message'] : '';
+
+		// $api_details = get_option('twilio-csv');
+		// if (is_array($api_details) and count($api_details) != 0) {
+		// 	$TWILIO_SID = $api_details['api_sid'];
+		// 	$TWILIO_TOKEN = $api_details['api_auth_token'];
+		// }
+		// try{
+		// 	// $to = explode(',', $to);
+
+		// 	$client = new Client($TWILIO_SID, $TWILIO_TOKEN);
+
+		// 	  $response = $client->messages->create(
+		// 			$to,
+		// 			array(
+		// 			  'from' => $sender_id,
+		// 			 'body' => $message
+		// 			)
+		// 		);
+
+		// } catch (Exception $e) {
+
+
+		// }           
+
+	}
+
 	function twilio_csv_register_shortcodes_create()
 	{
 		add_shortcode('create_csv_upload_form', array($this, 'create_csv_upload_form'));
@@ -360,5 +402,11 @@ class Twilio_Csv_Public
 	function twilio_csv_register_shortcodes_select()
 	{
 		add_shortcode('select_uploaded_csv_files', array($this, 'select_uploaded_csv_files'));
+	}
+
+
+	function twilio_csv_register_shortcodes_send()
+	{
+		add_shortcode('twilio_csv_show_results', array($this, 'twilio_csv_show_results'));
 	}
 } //  classTwilio_Csv_Public()
