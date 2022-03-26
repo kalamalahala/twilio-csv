@@ -322,14 +322,14 @@ class Twilio_Csv_Public
 		// print_r($entry_array);
 		// print('</pre>');
 
-
+		$embedded_page = get_page_link();
 
 		// form HTML with looped option group
 		$selector_form = '<div class="twilio-csv-viewer">
 		<form
 		  name="twilio-csv-viewer"
 		  id="twilio-csv-viewer"
-		  action="/?mode=send"
+		  action="' . $embedded_page .'/?mode=send"
 		  method="post"
 		  enctype="application/x-www-form-urlencoded"
 		  onsubmit="return confirm(\'Do you really want to submit the form?\');"
