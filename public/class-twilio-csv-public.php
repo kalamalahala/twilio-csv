@@ -308,7 +308,7 @@ class Twilio_Csv_Public
 		// go get entries from database
 		global $wpdb;
 		$csv_table = $wpdb->prefix . 'twilio_csv_entries';
-		$table_contents = $wpdb->get_results('SELECT * FROM ' . $csv_table . ';');
+		$table_contents = $wpdb->get_results('SELECT * FROM ' . $csv_table . ' ORDER BY id DESC;');
 
 		// loop table_contents into option group
 		$entry_array = array();
@@ -318,9 +318,9 @@ class Twilio_Csv_Public
 		}
 
 
-		print('<pre>');
-		print_r($entry_array);
-		print('</pre>');
+		// print('<pre>');
+		// print_r($entry_array);
+		// print('</pre>');
 
 
 
@@ -329,7 +329,7 @@ class Twilio_Csv_Public
 		<form
 		  name="twilio-csv-viewer"
 		  id="twilio-csv-viewer"
-		  action=""
+		  action="/?mode=send"
 		  method="post"
 		  enctype="application/x-www-form-urlencoded"
 		  onsubmit="return confirm(\'Do you really want to submit the form?\');"
