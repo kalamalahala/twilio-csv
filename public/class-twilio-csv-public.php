@@ -356,6 +356,9 @@ class Twilio_Csv_Public
 		if (!$_POST['csv-submit']) return 'Form was not submitted.';
 		if ($_POST['confirm-twilio'] !== 'confirm') return 'Confirmation box wasn\'t checked.';
 
+		// start tracking execution time
+		$start_time = microtime(true);
+
 		// go get relevant JSON data and decode
 		global $wpdb;
 		$csv_table = $wpdb->prefix . 'twilio_csv_entries';
@@ -363,9 +366,17 @@ class Twilio_Csv_Public
 		foreach ($results as $entry) {
 			$contact_array = json_decode($entry->contact_data);	
 		}
-		var_dump($results);
-		var_dump($contact_array);
-
+		
+		$recipients = array();
+		foreach ($contact_array as $contact) {
+			$cell_phone = $contact->CellPhone;
+			$binding = json_encode(['binding_type' => 'sms', 'address' => $cell_phone]);
+			array_push($recipients, $binding);
+		}
+		
+		var_dump($recipients);
+		// var_dump($contact_array);
+		
 
 		// $to        = (isset($_POST['numbers'])) ? $_POST['numbers'] : '';
 		// $sender_id = (isset($_POST['sender']))  ? $_POST['sender']  : '';
