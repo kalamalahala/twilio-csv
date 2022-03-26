@@ -178,7 +178,7 @@ class Twilio_Csv_Public
 	// this is the HTML Layout for the form since it doesn't like to be included, although script tags could be used as require/include()
 	public function create_csv_upload_form($atts)
 	{
-		
+
 		$atts = shortcode_atts(array(
 			'pagination' => 10
 		), $atts, 'create_csv_upload_form');
@@ -329,7 +329,7 @@ class Twilio_Csv_Public
 		<form
 		  name="twilio-csv-viewer"
 		  id="twilio-csv-viewer"
-		  action="' . $embedded_page .'?mode=send"
+		  action="' . $embedded_page . '?mode=send"
 		  method="post"
 		  enctype="application/x-www-form-urlencoded"
 		  onsubmit="return confirm(\'Do you really want to submit the form?\');"
@@ -352,7 +352,8 @@ class Twilio_Csv_Public
 		return $selector_form;
 	}
 
-	public function twilio_csv_show_results() {
+	public function twilio_csv_show_results()
+	{
 		// jump out if this was accessed without proper post data
 		if (!$_POST['csv-submit']) return 'Form was not submitted.';
 		if ($_POST['confirm-twilio'] !== 'confirm') return 'Confirmation box wasn\'t checked.';
@@ -366,61 +367,35 @@ class Twilio_Csv_Public
 		$csv_table = $wpdb->prefix . 'twilio_csv_entries';
 		$results = $wpdb->get_results('SELECT contact_data FROM ' . $csv_table . ' WHERE id=' . $_POST['csv-select'] . ';');
 		foreach ($results as $entry) {
-			$contact_array = json_decode($entry->contact_data);	
+			$contact_array = json_decode($entry->contact_data);
 		}
-		
+
 		// establish API credientials
 		$api_details = get_option('twilio-csv');
 		if (is_array($api_details) and count($api_details) != 0) {
 			$TWILIO_SID = $api_details['api_sid'];
 			$TWILIO_TOKEN = $api_details['api_auth_token'];
-			// $TWILIO_SENDING_NUMBER = $api_details['sending_number'];
 		}
 		$client = new Client($TWILIO_SID, $TWILIO_TOKEN);
 
 		$TWILIO_MESSAGE_BODY = $_POST['body'];
+		$message_result_text = '';
 
-		// foreach ($contact_array as $contact) {
-		// 	$recipient = $contact->CellPhone;
-		// 	try {
-		// 		$send_message = $client->messages->create(
-		// 			$recipient,
-		// 			[
-		// 				'body' => $TWILIO_MESSAGE_BODY,
-		// 				'from' => $TWILIO_SID
-		// 			]
-		// 		);
-		// 	} catch (false) {
-
-		// 	}
-			// $binding = json_encode(['binding_type' => 'sms', 'address' => $recipient]);
-			// array_push($recipients, $binding);
-		// }
-		
-		// var_dump($recipients);
-		// var_dump($contact_array);
-		
-
-		// $to        = (isset($_POST['numbers'])) ? $_POST['numbers'] : '';
-		// $sender_id = (isset($_POST['sender']))  ? $_POST['sender']  : '';
-		// $message   = (isset($_POST['message'])) ? $_POST['message'] : '';
-
-		// try{
-		// 	// $to = explode(',', $to);
-
-
-		// 	  $response = $client->messages->create(
-		// 			$to,
-		// 			array(
-		// 			  'from' => $sender_id,
-		// 			 'body' => $message
-		// 			)
-		// 		);
-
-		// } catch (Exception $e) {
-
-
-		// }           
+		foreach ($contact_array as $contact) {
+			$recipient = $contact->CellPhone;
+			try {
+				$send_message = $client->messages->create(
+					$recipient,
+					[
+						'body' => $TWILIO_MESSAGE_BODY,
+						'from' => $TWILIO_SID
+					]
+				);
+				if ($send_message) $message_result_text .= 'Message sent to ' . $recipient . '. <br />';
+			} catch (\Throwable $throwable) {
+				return $throwable->getMessage();
+			}
+		}
 
 	}
 
