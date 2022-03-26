@@ -353,8 +353,8 @@ class Twilio_Csv_Public
 
 	public function twilio_csv_show_results() {
 		// jump out if this was accessed without proper post data
-		if (!$_POST['csv-submit']) return;
-		if ($_POST['confirm-twilio'] !== 'confirm') return;
+		if (!$_POST['csv-submit']) return 'Form was not submitted.';
+		if ($_POST['confirm-twilio'] !== 'confirm') return 'Confirmation box wasn\'t checked.';
 
 		// go get relevant JSON data and decode
 		global $wpdb;
