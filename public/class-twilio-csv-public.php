@@ -380,22 +380,22 @@ class Twilio_Csv_Public
 
 		$TWILIO_MESSAGE_BODY = $_POST['body'];
 
-		foreach ($contact_array as $contact) {
-			$recipient = $contact->CellPhone;
-			try {
-				$send_message = $client->messages->create(
-					$recipient,
-					[
-						'body' => $TWILIO_MESSAGE_BODY,
-						'from' => $TWILIO_SID
-					]
-				);
-			} catch (false) {
+		// foreach ($contact_array as $contact) {
+		// 	$recipient = $contact->CellPhone;
+		// 	try {
+		// 		$send_message = $client->messages->create(
+		// 			$recipient,
+		// 			[
+		// 				'body' => $TWILIO_MESSAGE_BODY,
+		// 				'from' => $TWILIO_SID
+		// 			]
+		// 		);
+		// 	} catch (false) {
 
-			}
+		// 	}
 			// $binding = json_encode(['binding_type' => 'sms', 'address' => $recipient]);
 			// array_push($recipients, $binding);
-		}
+		// }
 		
 		// var_dump($recipients);
 		// var_dump($contact_array);
