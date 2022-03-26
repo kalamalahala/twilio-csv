@@ -341,7 +341,7 @@ class Twilio_Csv_Public
 			  <div class="confirm-twilio"><input type="checkbox" value="confirm" name="confirm-twilio">
 			  <label for="confirm-twilio">Send recruitment message?</label></div>
 			  <div class="submit-contacts-to-twilio">
-				<input type="submit" value="Submit" name="csv-submit" onclick="confirm_contact();" />
+				<input type="submit" value="Submit" name="csv-submit" />
 			  </div>
 			</div>
 		  </form>
