@@ -186,6 +186,7 @@ class Twilio_Csv {
 		$this->loader->add_shortcode( 'create_csv_upload_form', $plugin_public, 'twilio_csv_register_shortcodes_create' );
 		$this->loader->add_shortcode( 'select_uploaded_csv_files', $plugin_public, 'twilio_csv_register_shortcodes_select' );
 		$this->loader->add_shortcode( 'twilio_csv_show_results', $plugin_public, 'twilio_csv_register_shortcodes_send' );
+		$this->loader->add_shortcode( 'send_single_message', $plugin_public, 'twilio_csv_register_shortcodes_send_single' );
 
 	}
 

@@ -231,6 +231,8 @@ class Twilio_Csv_Public
 				$pagination_value = $atts['pagination'];
 				$rows = $dim[1] - 1;
 
+				$skipped = $rows - $trim_rows;
+
 
 
 				// create associative array of Column Names
@@ -241,7 +243,7 @@ class Twilio_Csv_Public
 
 				$list_csv_contents .= '<h2>Contents of File</h2>';
 				$list_csv_contents .= '<p>' . $rows . ' entries in file. Displaying ' . $pagination_value . ' per page.</p>';
-				$list_csv_contents .= '<p>' . $trim_rows . ' after trimming !CellPhone.</p>';
+				$list_csv_contents .= '<p>' . $trim_rows . ' entries remaining after skipping ' . $skipped . ' applicants without cell phones.</p>';
 				$list_csv_contents .= '<table border="1" cellpadding="3" style="border-collapse: collapse">';
 
 				$row_count = 0;
@@ -379,7 +381,8 @@ class Twilio_Csv_Public
 		$client = new Client($TWILIO_SID, $TWILIO_TOKEN);
 
 		$TWILIO_MESSAGE_BODY = $_POST['body'];
-		$message_result_text = '';
+		$message_result_list = '<ul>';
+		$message_count = 0;
 
 		foreach ($contact_array as $contact) {
 			$recipient = $contact->CellPhone;
@@ -391,12 +394,23 @@ class Twilio_Csv_Public
 						'from' => 'MGed693e77e70d6f52882605d37cc30d4c'
 					]
 				);
-				if ($send_message) $message_result_text .= 'Message sent to ' . $recipient . '. <br />';
+				if ($send_message) $message_result_list .= '<li>Message sent to <a href="tel:' . $recipient . '" title="Call ' . $recipient . '">' . $recipient . '</a></li>';
+				$message_count++;
 			} catch (\Throwable $throwable) {
 				return $throwable->getMessage();
 			}
 		}
 
+		return '<div class="results">Messages processed: ' . $message_count . '. Results below. ' . $message_result_list . '</ul></div>';
+
+	}
+
+	function send_single_message() {
+		return '<h1>Shortcode registered.</h1>';
+	}
+
+	function twilio_csv_register_shortcodes_send_single() {
+		add_shortcode('send_single_message', array($this, 'send_single_message'));
 	}
 
 	function twilio_csv_register_shortcodes_create()
