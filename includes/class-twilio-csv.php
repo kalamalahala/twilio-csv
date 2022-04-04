@@ -180,6 +180,9 @@ class Twilio_Csv {
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+
+		// Add Webhook Here?
+		$this->loader->add_action( 'rest_api_init', $plugin_public, 'register_twilio_csv_route');
 		
 		// Use this loader function to create embeddable shortcodes.
 		// Format: shortcode name // public class object // function that calls WP add_shortcode inside public class
@@ -187,6 +190,7 @@ class Twilio_Csv {
 		$this->loader->add_shortcode( 'select_uploaded_csv_files', $plugin_public, 'twilio_csv_register_shortcodes_select' );
 		$this->loader->add_shortcode( 'twilio_csv_show_results', $plugin_public, 'twilio_csv_register_shortcodes_send' );
 		$this->loader->add_shortcode( 'send_single_message', $plugin_public, 'twilio_csv_register_shortcodes_send_single' );
+		$this->loader->add_shortcode( 'msg_handler', $plugin_public, 'twilio_csv_register_shortcodes_handle' );		
 
 	}
 

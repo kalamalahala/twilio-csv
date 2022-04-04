@@ -50,5 +50,24 @@
         <div class="api-information"></div>
     </div>
     <!--  twilio-csv-form-container -->
+
+
+
+    <div class="send_single_form_container">
+      <form action="" name="send-single-sms" method="post" id="send-single-sms" enctype="application/x-www-form-urlencoded">
+        <div class="select-recipient">
+          <label for="single-to">Enter Phone Number <span class="required">*</span></label>
+          <input type="tel" id="single-to" name="single-to" pattern="+1 [0-9]{3} [0-9]{3} [0-9]{4}" maxlength="12" required
+          placeholder="+1 386 868 9059" />
+        </div><div class="message-body">
+          <label for="message-body">Message Body <span class="required">*</span></label>
+          <textarea id="message-body" name="message-body" rows="7" cols="40" placeholder="Message body here ..."
+            required></textarea>
+        </div><div class="submit-area">
+          <label for="single-submit">Submit SMS Message</label>
+          <input type="submit" value="Submit" name="single-submit" id="single-submit" />
+        </div>
+      </form>
+    </div>
   </body>
 </html>
