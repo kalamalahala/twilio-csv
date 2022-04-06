@@ -784,6 +784,15 @@ class Twilio_Csv_Public
 
 	// end webhook
 
+	function twilio_csv_gravity_view_update_handler() {
+		if (!isset($_GET['lead_id'])) { return; }
+		require_once(plugin_dir_path(__FILE__) . '/partials/class-twilio-csv-update-handler.php');
+	}
+
+	function twilio_csv_register_gravity_view_update_handler() {
+		add_shortcode('update_handler', array($this, 'twilio_csv_gravity_view_update_handler'));
+	}
+
 	function twilio_csv_register_shortcodes_handle()
 	{
 		add_shortcode('msg_handler', array($this, 'handle_incoming_message_from_twilio'));

@@ -193,7 +193,8 @@ class Twilio_Csv {
 		$this->loader->add_shortcode( 'select_uploaded_csv_files', $plugin_public, 'twilio_csv_register_shortcodes_select' );
 		$this->loader->add_shortcode( 'twilio_csv_show_results', $plugin_public, 'twilio_csv_register_shortcodes_send' );
 		$this->loader->add_shortcode( 'send_single_message', $plugin_public, 'twilio_csv_register_shortcodes_send_single' );
-		$this->loader->add_shortcode( 'msg_handler', $plugin_public, 'twilio_csv_register_shortcodes_handle' );		
+		$this->loader->add_shortcode( 'msg_handler', $plugin_public, 'twilio_csv_register_shortcodes_handle' );
+		$this->loader->add_shortcode( 'update_handler', $plugin_public, 'twilio_csv_register_gravity_view_update_handler' );		
 
 	}
 
