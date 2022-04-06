@@ -737,6 +737,8 @@ class Twilio_Csv_Public
 					if ($sender->phone_number == $trimmed_number) {
 						$first_name = $sender->first_name;
 						$last_name = $sender->last_name;
+						$phone_number = $sender->phone_number;
+						$email = $sender->email;
 					}
 				}
 			} else {
@@ -760,7 +762,10 @@ class Twilio_Csv_Public
 		$form_entry['3'] = $_POST['Body'];
 		$form_entry['4.3'] = $first_name;
 		$form_entry['4.6'] = $last_name;
-		$form_entry['5'] = ($caller_id) ? $caller_id : 'Caller ID Unavailable';
+		$form_entry['5'] = (!empty($caller_id)) ? $caller_id : 'Caller ID Unavailable';
+		$form_entry['6'] = 'Replied Yes';
+		$form_entry['7'] = $email;
+		$form_entry['8'] = 'Active';
 
 		try {
 			$submission = GFAPI::add_entry($form_entry);
