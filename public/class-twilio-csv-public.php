@@ -14,13 +14,40 @@
 require_once(plugin_dir_path(__FILE__) . '/../twilio/Twilio/autoload.php');
 
 use Twilio\Rest\Client;
-use Twilio\TwiML\MessagingResponse;
-use Twilio\TwiML\TwiML;
+// use Twilio\TwiML\MessagingResponse;
+// use Twilio\TwiML\TwiML;
 
 // json_encode dependency from github
 require_once(plugin_dir_path(__FILE__) . '/../vendor/autoload.php');
 
-use Shuchkin\SimpleXLSX;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+if (!function_exists('wp_handle_upload')) {
+	require_once(ABSPATH . 'wp-admin/includes/file.php');
+}
+
+// use Shuchkin\SimpleXLSX as XLSX;
+// use Shuchkin\SimpleXLS as XLS;
+
+// if (isset($_FILES['csv-upload'])) {
+
+// 	// check file type and parse with correct class
+// 	$file_type = pathinfo($_FILES['csv-upload']['name'], PATHINFO_EXTENSION);
+
+// 	switch ($file_type) {
+// 		case 'xls':
+// 			$use_type = 'Shuchkin\SimpleXLS';
+// 			break;
+// 		case 'xlsx':
+// 			$use_type = 'Shuchkin\SimpleXLSX';
+// 			break;
+// 		default:
+// 			return 'Unsupported file type.';
+// 	}
+
+// }
+
+// use $use_type;
 
 //  C:\Users\solod\Desktop\repos\twilio-csv\vendor\shuchkin\simplexlsx\src\SimpleXLSX.php
 
@@ -121,10 +148,9 @@ class Twilio_Csv_Public
 			return false;
 		}
 
+		$return_html = '<ul>';
+		$new_contacts = 0;
 		$contact_decoded = json_decode($contact_data);
-
-		// var_dump($contact_decoded);
-		// die;
 
 		global $wpdb;
 		$csv_table = $wpdb->prefix . 'twilio_csv_entries';
@@ -142,8 +168,9 @@ class Twilio_Csv_Public
 		);
 
 		$insert_csv = $wpdb->insert($csv_table, $csv_data, null);
-		$insert_csv = true;
+		$query_status = ($insert_csv) ? true : false;
 		$existing_ids = array();
+
 		try {
 			$get_ids = $wpdb->get_results('SELECT * FROM ' . $contact_table);
 		} catch (Exception $error) {
@@ -153,11 +180,9 @@ class Twilio_Csv_Public
 		foreach ($get_ids as $entry) {
 			array_push($existing_ids, $entry->unique_id);
 		}
-		
-		$new_contacts = 0;
 
 		foreach ($contact_decoded as $contact) {
-			$full_name = $contact->{'First Name'} . $contact->{'Last Name'};
+			$full_name = $contact->{'First Name'} . $contact->{'Last Name'} . $contact->CellPhone;
 			$unique_id = hash('sha256', $full_name);
 			$contact_entry = array(
 				'id' => '',
@@ -168,44 +193,29 @@ class Twilio_Csv_Public
 				'unique_id' => $unique_id
 			);
 
-			if (!in_array($unique_id, $existing_ids)) {
+			if (in_array($unique_id, $existing_ids)) {
+				$return_html .= '<li>' . $contact_entry['first_name'] . ' ' . $contact_entry['last_name'] . ' skipped, contact exists.</li>';
+			} else {
 				try {
 					$add_contact = $wpdb->insert($contact_table, $contact_entry, null);
+					$return_html .= '<li>' . $contact_entry['first_name'] . ' ' . $contact_entry['last_name'] . ' added to contact list</li>';
 					$new_contacts++;
 				} catch (Exception $error) {
 					echo $error;
 				}
 			}
 		}
+		$return_html .= '<li>Processing complete.</li></ul>';
 
 
-
-
-		if ($insert_csv && $add_contact) {
-			return $new_contacts;
+		if ($query_status && $new_contacts > 0) {
+			return $return_html;
+		} else if ($query_status) {
+			return $return_html . '<p>.XLSX File added to database, no contacts created.</p>';
 		} else {
-			return false;
+			return 'Submission failure.';
 		}
-
-		// $query_INSERT = $wpdb->insert();
-
-
-		// request plugin options from admin panel including user ID and Auth token
-		// $api_details = get_option('twilio-csv');
-		// if (is_array($api_details) and count($api_details) != 0) {
-		// 	$TWILIO_SID = $api_details['api_sid'];
-		// 	$TWILIO_TOKEN = $api_details['api_auth_token'];
-		// }
-
-		// // init message contents? comment this and come back to it
-		// $to        = (isset($_POST['numbers'])) ? $_POST['numbers'] : '';
-		// $sender_id = (isset($_POST['sender']))  ? $_POST['sender']  : '';
-		// $message   = (isset($_POST['message'])) ? $_POST['message'] : '';
-
-
-
-		// $client = new Client($TWILIO_SID, $TWILIO_TOKEN);
-		// $xlsx = SimpleXLSX::parse('');
+		return false;
 	}
 
 	public function twilio_csv_public_shortcodes()
@@ -227,53 +237,124 @@ class Twilio_Csv_Public
 	// this is the HTML Layout for the form since it doesn't like to be included, although script tags could be used as require/include()
 	public function create_csv_upload_form($atts)
 	{
-
+		// init settings
 		$atts = shortcode_atts(array(
 			'pagination' => 10
 		), $atts, 'create_csv_upload_form');
-
 		$list_csv_contents = '';
 
+		// begin parse if file exists
 		if (isset($_FILES['csv-upload'])) {
-			if ($xlsx = SimpleXLSX::parse($_FILES['csv-upload']['tmp_name'])) {
 
+			// Check file extension and abort if not xlsx
+			$extension = ucfirst(pathinfo($_FILES['csv-upload']['name'], PATHINFO_EXTENSION));
+			if ($extension !== 'Xlsx') {
+				return 'File not in .xlsx format.';
+			}
+
+			// save uploaded file and return array
+			$wp_uploaded_file = wp_handle_upload($_FILES['csv-upload'], array('test_form' => FALSE));
+
+			try {
+				$file_type = IOFactory::identify($wp_uploaded_file['file']);
+			} catch (Exception $identify_error) {
+				echo 'Identify Error: ' . $identify_error;
+				die;
+			}
+
+			try {
+				$reader = IOFactory::createReader($file_type);
+			} catch (Exception $read_error) {
+				echo 'Reader Error: ' . $read_error;
+				die;
+			}
+
+			try {
+				$parsed_file = $reader->load($wp_uploaded_file['file']);
+			} catch (Exception $parse_error) {
+				echo 'Parse Error: ' . $parse_error;
+				die;
+			}
+
+			try {
+				$file_info = $reader->listWorksheetInfo($wp_uploaded_file['file']);
+			} catch (Exception $parse_error) {
+				echo 'File Info failed: ' . $parse_error;
+				die;
+			}
+
+			if ($parsed_file) {
 				$header_values = $json_rows = [];
 
-				// Get Header values, strip that row, then load all rows into a [int][ $header_values => $value ] array 
-				foreach ($xlsx->rows() as $k => $r) {
-					if ($k === 0) {
-						$header_values = $r;
+				$upload_array = $parsed_file->getActiveSheet()->toArray();
+				foreach ($upload_array as $row => $cell) {
+					if ($row === 0) {
+						if ($cell[0] !== 'Office') {
+							$list_csv_contents .= 'Unexpected format! "Office" was not found in the very first cell. Was this a RMS file?';
+							break;
+						}
+						$header_values = $cell;
 						continue;
 					}
-					// @todo hardcoding CellPhone for now, $header_values[14] or $header_values['CellPhone']
-					// or maybe this?: ignore rows that do not have anything in column 14
-					if (!$r[14]) {
+					if (!$cell[14]) {
 						continue;
 					}
-
-					//FORMAT CELL PHONE
 					$remove_items = array('-', '(', ')', '+', ' ');
-					$r[14] = str_replace($remove_items, '', $r[14]);
-					if ($r[14][0] == '1' && strlen($r[14]) == '10') {
-						$r[14] = substr($r[14], 1);
+					$cell[14] = str_replace($remove_items, '', $cell[14]);
+					if ($cell[14][0] == '1' && strlen($cell[14]) == '10') {
+						$cell[14] = substr($cell[14], 1);
 					}
 
-					$json_rows[] = array_combine($header_values, $r);
+					$json_rows[] = array_combine($header_values, $cell);
 				}
+
+
+				// print('<pre>');
+				// var_dump($json_rows);
+				// print('</pre>');
+				// die;
+
+				// // Get Header values, strip that row, then load all rows into a [int][ $header_values => $value ] array 
+				// foreach ($parsed_file->rows() as $k => $r) {
+
+				// 	// Check for "Office" in first row and first column, abort if not present
+				// 	// otherwise assign header_values
+				// 	if ($k === 0) {
+				// 		if ($r[0] !== 'Office') {
+				// 			return 'Unexpected format!';
+				// 		}
+				// 		$header_values = $r;
+				// 		continue;
+				// 	}
+				// 	// @todo hardcoding CellPhone for now, $header_values[14] or $header_values['CellPhone']
+				// 	// or maybe this?: ignore rows that do not have anything in column 14
+				// 	if (!$r[14]) {
+				// 		continue;
+				// 	}
+
+				// 	//FORMAT CELL PHONE
+				// 	$remove_items = array('-', '(', ')', '+', ' ');
+				// 	$r[14] = str_replace($remove_items, '', $r[14]);
+				// 	if ($r[14][0] == '1' && strlen($r[14]) == '10') {
+				// 		$r[14] = substr($r[14], 1);
+				// 	}
+
+				// 	$json_rows[] = array_combine($header_values, $r);
+				// }
 
 				$trim_rows = count($json_rows);
 
 				$file_data = array();
 				$file_data['file_name'] = $_FILES['csv-upload']['tmp_name'];
 				$file_data['rows'] = $trim_rows;
-				$file_data['date'] = date('g:i:s A m/d/Y', strtotime('today'));
+				$file_data['date'] = date('g:i:s A m/d/Y', strtotime('now -5 hours'));
 
 				// attempt to add CSV to database
 				if (!empty($json_rows) && $_POST['confirm-upload'] == 'confirm') {
 					try {
 						$json_data = json_encode($json_rows);
 						$file_to_wpdb = $this->process_pending_messages($json_data, $trim_rows, $file_data);
-						$list_csv_contents .= ($file_to_wpdb) ? '<div class="alert-success">File sucessfully parsed, trimmed, and added to database. ' . $file_to_wpdb . ' <strong>new</strong> contacts created.</div>' : '';
+						$list_csv_contents .= ($file_to_wpdb) ? '<div class="alert-success">' . $file_to_wpdb . '</div>' : '';
 					} catch (Exception $e) {
 						echo 'Error: ' . $e;
 					}
@@ -287,10 +368,12 @@ class Twilio_Csv_Public
 				// print('</pre>');
 
 
-				$dim = $xlsx->dimension();
-				$cols = $dim[0];
-				$pagination_value = $atts['pagination'];
-				$rows = $dim[1] - 1;
+				// $dim = $parsed_file->dimension();
+				// $pagination_value = $atts['pagination'];
+				foreach ($file_info as $worksheet) {
+					$cols = $worksheet['totalColumns'];
+					$rows = $worksheet['totalRows'] - 1;
+				}
 
 				$skipped = $rows - $trim_rows;
 
@@ -302,9 +385,9 @@ class Twilio_Csv_Public
 				// 	$sheet_columns .= isset($json_rows[$k][$r]) ? $json_rows[$k][$r] : 'zzz' ) . '</td>';
 				// }
 
-				$list_csv_contents .= '<h2>Contents of File</h2>';
-				$list_csv_contents .= '<p>' . $rows . ' entries in file.</p>';
-				$list_csv_contents .= '<p>' . $trim_rows . ' entries remaining after skipping ' . $skipped . ' applicants without cell phones.</p>';
+				$list_csv_contents .= '<div class="file-contents"><h4>Contents of File</h4>';
+				$list_csv_contents .= '<p>' . $rows . ' entries in file according to phpSpreadSheet. ';
+				$list_csv_contents .= $trim_rows . ' entries passed to the database after skipping ' . $skipped . ' applicants without cell phones.</p></div>';
 				// $list_csv_contents .= '<table border="1" cellpadding="3" style="border-collapse: collapse">';
 
 				// $row_count = 0;
@@ -326,7 +409,7 @@ class Twilio_Csv_Public
 				// }
 				// $list_csv_contents .= '</table>';
 			} else {
-				$list_csv_contents .= SimpleXLSX::parseError();
+				$list_csv_contents .= 'Parse error.';
 			}
 		}
 
@@ -339,23 +422,24 @@ class Twilio_Csv_Public
         enctype="multipart/form-data"
         >
         <div class="upload-section">
-        <label for="csv-upload">Upload Contacts</label>
+        <label for="csv-upload">Upload Contacts (.xlsx)
         <input
           type="file"
           id="csv-upload"
           name="csv-upload"
-          accept=".csv,.xls,.xlsx"
-        />
+          accept=".xlsx"
+		  class="upload-file"
+        /></label><p id="file-name" class="file-name"></p></div>
         ' . ((!empty($list_csv_contents)) ? '<div class="list-csv-contents">' . $list_csv_contents . '</div>' : '') .
-			'<input type="checkbox" value="confirm" name="confirm-upload" checked>
-		<label for="confirm-upload">Add file to database?</label>
+			'<div class="confirm-upload"><label for="confirm-upload"><input type="checkbox" value="confirm" name="confirm-upload" checked>
+		Add file to database?</label></div>
 		<div class="submit-contacts-to-twilio">
           <input type="submit" value="Submit" name="csv-submit">
-        </div>
         </div>
 
       </form>
     </div>';
+
 		return $upload_form;
 	}
 
@@ -630,6 +714,7 @@ class Twilio_Csv_Public
 		if (!isset($_POST)) die;
 		$form_entry = array();
 		$name = array();
+		$response_text = '';
 
 		$api_details = get_option('twilio-csv');
 		if (is_array($api_details) and count($api_details) != 0) {
@@ -646,27 +731,32 @@ class Twilio_Csv_Public
 		$table = $wpdb->prefix . 'twilio_csv_contacts';
 
 		try {
-			$number_lookup = $wpdb->get_results('SELECT * FROM ' . $table . 'WHERE phone_number="' . $trimmed_number . '"');
+			$number_lookup = $wpdb->get_results('SELECT * FROM ' . $table);
+			if ($number_lookup) {
+				foreach ($number_lookup as $sender) {
+					if ($sender->phone_number == $trimmed_number) {
+						$first_name = $sender->first_name;
+						$last_name = $sender->last_name;
+					}
+				}
+			} else {
+				$response_text .= 'Number Lookup was empty.';
+			}
 		} catch (Exception $error) {
-			echo 'Number Lookup failed: ' . $error;
-		}
-
-		foreach ($number_lookup as $sender) {
-			$first_name = $sender->first_name;
-			$last_name = $sender->last_name;
+			$response_text .= 'Number Lookup failed: ' . $error;
 		}
 
 		$form_entry['id'] = '';
 		$form_entry['form_id'] = '80';
 		$form_entry['created_by'] = '';
-		$form_entry['date_created'] = new DateTime();
+		$form_entry['date_created'] = '';
 		$form_entry['is_starred'] = 'false';
 		$form_entry['is_read'] = 'false';
 		$form_entry['ip'] = '';
 		$form_entry['source_url'] = '';
-		$form_entry['post_id'] = '';
+		$form_entry['post_id'] = '15948';
 		$form_entry['status'] = 'active';
-		$form_entry['1'] = $trimmed_number;
+		$form_entry['1'] = $_POST['From'];
 		$form_entry['3'] = $_POST['Body'];
 		$form_entry['4.3'] = $first_name;
 		$form_entry['4.6'] = $last_name;
@@ -675,10 +765,10 @@ class Twilio_Csv_Public
 		try {
 			$submission = GFAPI::add_entry($form_entry);
 			if ($submission) {
-				$response_text = 'Okay ' . $first_name . ', I will reach back out via a phone call soon.';
+				$response_text .= 'Okay ' . $first_name . ', I will reach back out via a phone call soon.';
 			}
 		} catch (Exception $error) {
-			$response_text = $error;
+			$response_text .= $error;
 		}
 
 		echo header('content-type: text/xml');
@@ -720,4 +810,41 @@ class Twilio_Csv_Public
 	{
 		add_shortcode('twilio_csv_show_results', array($this, 'twilio_csv_show_results'));
 	}
-} //  classTwilio_Csv_Public()
+
+
+	/**
+	 * This hooks into the recruiting page and deposits some javascript, but doesn't seem to function yet.
+	 *
+	 * @return javascript supposed to update the file-name element
+	 */
+	function twilio_csv_add_javascript() {
+		if (is_page('15948')) {
+		?>
+			<script type="text/javascript">
+				jQuery(document).ready(function() {
+					const file_uploader = document.getElementById("csv-upload");
+					const file_text = document.getElementById("file-name");
+	
+					/* file.onclick = alert("Yeah the script is working"); */
+						
+					function update_file_size(e) {
+						const [file] = e.target.files;
+						// Get the file name and size
+						const { name: fileName, size } = file;
+						// Convert size in bytes to kilo bytes
+						const fileSize = (size / 1000).toFixed(2);
+						// Set the text content
+						const fileNameAndSize = `${fileName} - ${fileSize} KB and a bunch of other stuff`;
+						file_text.textContent = fileNameAndSize;
+						
+					}
+
+					jQuery("#csv-upload").on("change", update_file_size(this));
+					jQuery("#twilio-csv-upload-form").on("click", alert("test alert"));
+
+				});
+			</script>
+			<?php
+		}
+	}
+} //  class Twilio_Csv_Public()

@@ -183,6 +183,9 @@ class Twilio_Csv {
 
 		// Add Webhook Here?
 		$this->loader->add_action( 'rest_api_init', $plugin_public, 'register_twilio_csv_route');
+
+		// Embed javascript on recruiting page by ID
+		$this->loader->add_action( 'wp_head', $plugin_public, 'twilio_csv_add_javascript');
 		
 		// Use this loader function to create embeddable shortcodes.
 		// Format: shortcode name // public class object // function that calls WP add_shortcode inside public class
