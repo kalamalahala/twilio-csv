@@ -517,23 +517,24 @@ class Twilio_Csv_Public
 
 	public function twilio_csv_show_results()
 	{
-		// jump out if this was accessed without proper post data
+		// Exit unless the stars are aligned
 		if (!$_POST['csv-submit']) return 'Form was not submitted.';
 		if ($_POST['confirm-twilio'] !== 'confirm') return 'Confirmation box wasn\'t checked.';
 		if (!$_POST['body']) return 'No message to send!';
 
-		// start tracking execution time
+		// Start tracking execution time
 		$start_time = microtime(true);
 
-		// go get relevant JSON data and decode
+		// Go get relevant JSON data and decode for PHP
 		global $wpdb;
 		$csv_table = $wpdb->prefix . 'twilio_csv_entries';
 		$results = $wpdb->get_results('SELECT contact_data FROM ' . $csv_table . ' WHERE id=' . $_POST['csv-select'] . ';');
 		foreach ($results as $entry) {
+			// Everyone on the uploaded xlsx file
 			$contact_array = json_decode($entry->contact_data);
 		}
 
-		// establish API credientials
+		// Go get API Keys and open a new Client
 		$api_details = get_option('twilio-csv');
 		if (is_array($api_details) and count($api_details) != 0) {
 			$TWILIO_SID = $api_details['api_sid'];
@@ -541,19 +542,20 @@ class Twilio_Csv_Public
 		}
 		$client = new Client($TWILIO_SID, $TWILIO_TOKEN);
 
-		// $TWILIO_MESSAGE_BODY = $_POST['body'];
 		$message_result_list = '<ul>';
 		$message_count = 0;
 
+		// List of programmed messages with replacement variables.
 		$messages = array();
 		$messages['message-1'] = 'Hey FIRSTNAME, my name is Ariel with The Johnson Group. We saw your resume online. Are you still looking for a career opportunity?';
-
 		$selected_message = $messages[$_POST['body']];
+
+		// Process list of contacts with selected message
 		foreach ($contact_array as $contact) {
 			$recipient = $contact->CellPhone;
 			// var_dump($contact);
 			$TWILIO_MESSAGE_BODY = str_replace('FIRSTNAME', $contact->{'First Name'}, $selected_message);
-			// $TWILIO_MESSAGE_BODY = "hello";
+
 			try {
 				$send_message = $client->messages->create(
 					$recipient,
@@ -563,13 +565,16 @@ class Twilio_Csv_Public
 					]
 				);
 				if ($send_message) $message_result_list .= '<li>Message sent to <a href="tel:' . $recipient . '" title="Call ' . $recipient . '">' . $recipient . '</a></li>';
-				$message_count++;
+				$message_count++; // total messages sent
 			} catch (\Throwable $throwable) {
-				return $throwable->getMessage();
+				return GFCommon::log_error($throwable);
 			}
 		}
 
-		return '<div class="results">Messages processed: ' . $message_count . '. Results below. ' . $message_result_list . '</ul></div>';
+		// Get total execution time in milliseconds.
+		$total_time = round((microtime(true) - $start_time)*1000);
+
+		return '<div class="results">Run time: ' . $total_time . ' milliseconds. Messages processed: ' . $message_count . '. Results below: ' . $message_result_list . '</ul></div>';
 	}
 	/**
 	 * Single Message form sender and POST handler. 
@@ -702,7 +707,7 @@ class Twilio_Csv_Public
 			'callback' => array($this, 'trigger_receive_sms')
 		));
 	}
-
+	
 
 	function trigger_receive_sms()
 	{
@@ -712,6 +717,14 @@ class Twilio_Csv_Public
 		// FromCountry, MessagingServiceSid, ToZip, NumSegments, ReferralNumMedia, MessageSid, AccountSid, ApiVersion
 
 		if (!isset($_POST)) die;
+		
+		$message_array = explode(' ', $_POST['body']);
+		if (!in_array('yes', $message_array)) die;
+
+		/*
+		* Add message to front end for further work
+		*/
+		
 		$form_entry = array();
 		$name = array();
 		$response_text = '';
