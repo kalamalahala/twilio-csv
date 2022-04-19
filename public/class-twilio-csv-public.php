@@ -26,6 +26,23 @@ if (!function_exists('wp_handle_upload')) {
 	require_once(ABSPATH . 'wp-admin/includes/file.php');
 }
 
+/**
+ *  Create Logging functionality snippet
+ */
+if (!function_exists('write_log')) {
+
+    function write_log($log) {
+        if (true === WP_DEBUG) {
+            if (is_array($log) || is_object($log)) {
+                error_log(print_r($log, true));
+            } else {
+                error_log($log);
+            }
+        }
+    }
+
+}
+
 // use Shuchkin\SimpleXLSX as XLSX;
 // use Shuchkin\SimpleXLS as XLS;
 
@@ -142,6 +159,14 @@ class Twilio_Csv_Public
 		wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/twilio-csv-public.js', array('jquery'), false, false);
 	}
 
+	// Return clean formatted cell phone number
+	function strip_phone_extras($strip_number)
+	{
+		$remove_items = array('-', '(', ')', '+', ' ');
+		$stripped_number = str_replace($remove_items, '', $strip_number);
+		return $stripped_number;
+	}
+
 	function process_pending_messages($contact_data, $num_entries, $file_data)
 	{
 		if (!$contact_data) {
@@ -182,6 +207,11 @@ class Twilio_Csv_Public
 		}
 
 		foreach ($contact_decoded as $contact) {
+			if (is_null($contact->CellPhone)) {
+				write_log('No Cell Phone Number in array, skipping creating contact');
+				$return_html .= '<li>No Cell Phone Number in array, skipping creating contact</li>';
+				continue;
+			}
 			$full_name = $contact->{'First Name'} . $contact->{'Last Name'} . $contact->CellPhone;
 			$unique_id = hash('sha256', $full_name);
 			$contact_entry = array(
@@ -194,14 +224,14 @@ class Twilio_Csv_Public
 			);
 
 			if (in_array($unique_id, $existing_ids)) {
-				$return_html .= '<li>' . $contact_entry['first_name'] . ' ' . $contact_entry['last_name'] . ' skipped, contact exists.</li>';
+				$return_html .= '<li>' . $contact_entry['first_name'] . ' ' . $contact_entry['last_name'] . ' skipped creating <em>Caller ID</em> , contact exists.</li>';
 			} else {
 				try {
 					$add_contact = $wpdb->insert($contact_table, $contact_entry, null);
 					$return_html .= '<li>' . $contact_entry['first_name'] . ' ' . $contact_entry['last_name'] . ' added to contact list</li>';
 					$new_contacts++;
 				} catch (Exception $error) {
-					echo $error;
+					write_log( $error . '<br>Unable to add contact to database');
 				}
 			}
 		}
@@ -256,7 +286,7 @@ class Twilio_Csv_Public
 			$wp_uploaded_file = wp_handle_upload($_FILES['csv-upload'], array('test_form' => FALSE));
 
 			try {
-				$file_type = IOFactory::identify($wp_uploaded_file['file']);
+				$file_type = IOFactory::identify($wp_uploaded_file['file']) ?? '';
 			} catch (Exception $identify_error) {
 				echo 'Identify Error: ' . $identify_error;
 				die;
@@ -285,8 +315,13 @@ class Twilio_Csv_Public
 
 			if ($parsed_file) {
 				$header_values = $json_rows = [];
+				$phone_numbers_listed = array();
+				$parsed_rows = 0;
+				$skipped_rows = 0;
 
 				$upload_array = $parsed_file->getActiveSheet()->toArray();
+
+				
 				foreach ($upload_array as $row => $cell) {
 					if ($row === 0) {
 						if ($cell[0] !== 'Office') {
@@ -296,18 +331,45 @@ class Twilio_Csv_Public
 						$header_values = $cell;
 						continue;
 					}
-					if (!$cell[14]) {
+					
+					// if (!$cell[14]) {
+						// 	continue;
+						// }
+
+						
+						
+						// $remove_items = array('-', '(', ')', '+', ' ');
+						// $stripped_number = strip_phone_extras()
+						// $cell[14] = str_replace($remove_items, '', $cell[14]);
+						
+						for ($i = 13; $i >= 16; $i++) {
+							if (!empty($cell[$i])) { strip_phone_extras($cell[$i]) ; }
+							if ($cell[$i][0] == '1' && strlen($cell[$i]) == '10') {
+								$cell[$i] = substr($cell[$i], 1);
+							}
+						}
+
+						if (empty($cell[14])) {
+							$cell[14] = $cell[16] ?? $cell[13] ?? $cell[15] ?? '';
+						}
+						
+						$listed_cell_phone_number = $cell[16] ?? $cell[14] ?? $cell[13] ?? $cell[15] ?? '';
+					
+						if (!in_array($listed_cell_phone_number, $phone_numbers_listed)) {
+						array_push($phone_numbers_listed, $listed_cell_phone_number);
+						$json_rows[] = array_combine($header_values, $cell);
+						$parsed_rows++;
+					} else {
+						// Cell phone already exists in temporary array, skip this one
+						$skipped_rows++;
 						continue;
 					}
-					$remove_items = array('-', '(', ')', '+', ' ');
-					$cell[14] = str_replace($remove_items, '', $cell[14]);
-					if ($cell[14][0] == '1' && strlen($cell[14]) == '10') {
-						$cell[14] = substr($cell[14], 1);
-					}
-
-					$json_rows[] = array_combine($header_values, $cell);
 				}
-
+				
+				// print '<pre>';
+				// var_dump($json_rows);
+				// print '</pre>';
+				// die();
 
 				// print('<pre>');
 				// var_dump($json_rows);
@@ -375,7 +437,7 @@ class Twilio_Csv_Public
 					$rows = $worksheet['totalRows'] - 1;
 				}
 
-				$skipped = $rows - $trim_rows;
+				// $skipped = $rows - $trim_rows;
 
 
 
@@ -386,8 +448,9 @@ class Twilio_Csv_Public
 				// }
 
 				$list_csv_contents .= '<div class="file-contents"><h4>Contents of File</h4>';
-				$list_csv_contents .= '<p>' . $rows . ' entries in file according to phpSpreadSheet. ';
-				$list_csv_contents .= $trim_rows . ' entries passed to the database after skipping ' . $skipped . ' applicants without cell phones.</p></div>';
+				$list_csv_contents .= '<p>' . $rows . ' rows in the uploaded .xlsx file. ';
+				$list_csv_contents .= 'Campaign created with ' .$trim_rows . ' contacts.</p></div>';
+				$list_csv_contents .= ($skipped_rows > 0) ? '<div class="alert-warning">' . $skipped_rows . ' entries had matching phone numbers and were not included in the upload.</div>' : '';
 				// $list_csv_contents .= '<table border="1" cellpadding="3" style="border-collapse: collapse">';
 
 				// $row_count = 0;
@@ -434,7 +497,7 @@ class Twilio_Csv_Public
 			'<div class="confirm-upload"><label for="confirm-upload"><input type="checkbox" value="confirm" name="confirm-upload" checked>
 		Add file to database?</label></div>
 		<div class="submit-contacts-to-twilio">
-          <input type="submit" value="Submit" name="csv-submit">
+          <input type="submit" value="Upload Contact List" name="csv-submit"><p class="description-text">This action will create a new Campaign. No text messages will be sent yet.</p>
         </div>
 
       </form>
@@ -503,7 +566,8 @@ class Twilio_Csv_Public
 											<label for="confirm-twilio">
 											<input type="checkbox" value="confirm" name="confirm-twilio" required /> Confirm selected message?
 											</label>
-												<input type="submit" value="Submit" name="csv-submit" class="fusion-button button-3d button-medium button-default button-2" />
+											<label for="csv-submit">Begin New Text Campaign<div class="csv-submit-button">	
+											<input type="submit" value="Submit Bulk SMS to Contact List" name="csv-submit" class="fusion-button button-3d button-medium button-default button-2" /></div></label>
 											</div>
 											
 										</div>
@@ -544,10 +608,13 @@ class Twilio_Csv_Public
 
 		$message_result_list = '<ul>';
 		$message_count = 0;
+		$contact_count = 0;
 
 		// List of programmed messages with replacement variables.
 		$messages = array();
+		$contacted_numbers = array();
 		$messages['message-1'] = 'Hey FIRSTNAME, my name is Ariel with The Johnson Group. We saw your resume online. Are you still looking for a career opportunity?';
+		$messages['message-2'] = 'Hi FIRSTNAME, Im Ariel with Globe Life - Liberty Division. We received your request for employment consideration. Are you still looking for a career?';
 		$selected_message = $messages[$_POST['body']];
 
 		// Process list of contacts with selected message
@@ -555,26 +622,31 @@ class Twilio_Csv_Public
 			$recipient = $contact->CellPhone;
 			// var_dump($contact);
 			$TWILIO_MESSAGE_BODY = str_replace('FIRSTNAME', $contact->{'First Name'}, $selected_message);
-
-			try {
-				$send_message = $client->messages->create(
-					$recipient,
-					[
-						'body' => $TWILIO_MESSAGE_BODY,
-						'from' => 'MGed693e77e70d6f52882605d37cc30d4c'
-					]
-				);
-				if ($send_message) $message_result_list .= '<li>Message sent to <a href="tel:' . $recipient . '" title="Call ' . $recipient . '">' . $recipient . '</a></li>';
-				$message_count++; // total messages sent
-			} catch (\Throwable $throwable) {
-				return GFCommon::log_error($throwable);
+			// Add each message phone number to array of contacted numbers to prevent duplicates on same CSV file.
+			if (!in_array($recipient, $contacted_numbers)) {
+				try {
+					$send_message = $client->messages->create(
+						$recipient,
+						[
+							'body' => $TWILIO_MESSAGE_BODY,
+							'from' => 'MGed693e77e70d6f52882605d37cc30d4c'
+						]
+					);
+					if ($send_message) $message_result_list .= '<li>Message sent to <a href="tel:' . $recipient . '" title="Call ' . $recipient . '">' . $recipient . '</a></li>';
+					$message_count++; // total messages sent
+				} catch (\Exception $throwable) {
+					// GFCommon::log_error($throwable);
+					write_log('Error sending message to ' . $recipient . '. Details: ' . $throwable);
+				}
 			}
+			array_push($contacted_numbers, $recipient);
+			$contact_count++; // total contacts processed
 		}
 
 		// Get total execution time in milliseconds.
-		$total_time = round((microtime(true) - $start_time)*1000);
+		$total_time = round((microtime(true) - $start_time) * 1000);
 
-		return '<div class="results">Run time: ' . $total_time . ' milliseconds. Messages processed: ' . $message_count . '. Results below: ' . $message_result_list . '</ul></div>';
+		return '<div class="results">Run time: ' . $total_time . ' milliseconds. Messages processed: ' . $message_count . ' to ' . $contact_count . ' contacts. ' . 'Results below: ' . $message_result_list . '</ul></div>';
 	}
 	/**
 	 * Single Message form sender and POST handler. 
@@ -645,107 +717,115 @@ class Twilio_Csv_Public
 		}
 	}
 
+	
 	function handle_incoming_message_from_twilio()
 	{
-
-
+		
+		
 		// creating a webhook to handle POST from twilio
-
-		if (!$_POST['body']) return;
-
-		$gforms_consumer = "ck_6a4204b5c2e658c7511d1eac3bfc25efb3337922";
-		$gforms_secret = "cs_056ef416b003f7c6c78d922c687e9351da20c1a9";
-		$url = "https://thejohnson.group/wp-json/gf/v2/forms/80/entries";
-		$method = "POST";
-		$args = array();
-
-		$from = $_POST['from'];
-		$body = $_POST['body'];
-		$date_timestamp = new DateTime();
-
-		$body_content = '{
-			"date_created" : ' . $date_timestamp . ',
-			"is_starred"   : 0,
-			"is_read"      : 0,
-			"ip"           : "::1",
-			"source_url"   : "",
-			"currency"     : "USD",
-			"created_by"   : 1,
-			"user_agent"   : "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0",
-			"status"       : "active",
-			"1"            : ' . $from . ',
-			"3"            : ' . $body . '
-			}';
-
-		require_once('class-oauth-request.php');
-		$oauth = new OAuth_Request($url, $gforms_consumer, $gforms_secret, $method, $args);
-
-		$response = wp_remote_request(
-			$oauth->get_url(),
-			array(
-				'method' => $method,
-				'body' => $body_content,
-				'headers' => array('Content-Type' => 'application/json')
-			)
-		);
-
-		// Check the response code.
-		if (wp_remote_retrieve_response_code($response) != 200 || (empty(wp_remote_retrieve_body($response)))) {
-			// If not a 200, HTTP request failed.
-			die('There was an error attempting to access the API.');
-		} else {
-			return 'Message sent';
+		
+		// if (!$_POST['body']) return;
+		
+		// $gforms_consumer = "ck_6a4204b5c2e658c7511d1eac3bfc25efb3337922";
+		// $gforms_secret = "cs_056ef416b003f7c6c78d922c687e9351da20c1a9";
+		// $url = "https://thejohnson.group/wp-json/gf/v2/forms/80/entries";
+		// $method = "POST";
+		// $args = array();
+		
+		// $from = $_POST['from'];
+		// $body = $_POST['body'];
+		// $date_timestamp = new DateTime();
+		
+		// $body_content = '{
+		// 	"date_created" : ' . $date_timestamp . ',
+		// 	"is_starred"   : 0,
+		// 	"is_read"      : 0,
+		// 	"ip"           : "::1",
+		// 	"source_url"   : "",
+		// 	"currency"     : "USD",
+		// 	"created_by"   : 1,
+		// 	"user_agent"   : "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0",
+		// 	"status"       : "active",
+		// 	"1"            : ' . $from . ',
+		// 	"3"            : ' . $body . '
+		// }';
+		
+		// require_once('class-oauth-request.php');
+		// $oauth = new OAuth_Request($url, $gforms_consumer, $gforms_secret, $method, $args);
+		
+		// $response = wp_remote_request(
+		// 	$oauth->get_url(),
+		// 	array(
+		// 		'method' => $method,
+		// 		'body' => $body_content,
+		// 		'headers' => array('Content-Type' => 'application/json')
+		// 		)
+		// 	);
+			
+		// 	// Check the response code.
+		// 	if (wp_remote_retrieve_response_code($response) != 200 || (empty(wp_remote_retrieve_body($response)))) {
+		// 		// If not a 200, HTTP request failed.
+		// 		die('There was an error attempting to access the API.');
+		// 	} else {
+		// 		return 'Message sent';
+		// 	}
 		}
-	}
+		
+		
+		// begin webhook
+		function register_twilio_csv_route()
+		{
+			register_rest_route('twilio_csv/v1', '/receive_sms', array(
+				'methods' => 'POST',
+				'callback' => array($this, 'trigger_receive_sms')
+			));
+		}
+		
+		// begin bulk webhook TODO: possibly remove and handle logic within trigger_receive_sms
+		function register_twilio_bulk_route()
+		{
+			register_rest_route('twilio_csv/v1', '/receive_bulk_sms', array(
+				'methods' => 'POST',
+				'callback' => array($this, 'trigger_receive_bulk_sms')
+			));
+		}
+		
+		// function trigger_receive_bulk_sms() {
+		// 	if (!$_POST['Body']) return;
+		// 	$message = $this->trigger_receive_sms('bulk');
+		// }
+		
+		function trigger_receive_sms()
+		{
+			// Escape if no POST data to webhook
+			if (!isset($_POST)) return;
 
-
-	// begin webhook
-	function register_twilio_csv_route()
-	{
-		register_rest_route('twilio_csv/v1', '/receive_sms', array(
-			'methods' => 'POST',
-			'callback' => array($this, 'trigger_receive_sms')
-		));
-	}
-	
-
-	function trigger_receive_sms()
-	{
 		// Twilio Key List:
 		// ToCountry, ToState, SmsMessageSid, NumMedia, ToCity, FromZip, SmsSid, FromState, SmsStatus, FromCity
 		// Body, To, From
 		// FromCountry, MessagingServiceSid, ToZip, NumSegments, ReferralNumMedia, MessageSid, AccountSid, ApiVersion
 
-		if (!isset($_POST)) die;
-		
-		$message_array = explode(' ', $_POST['body']);
-		if (!in_array('yes', $message_array)) die;
+		// $message_array = explode(' ', $_POST['body']);
+		// if (!in_array('yes', $message_array)) die;
 
 		/*
 		* Add message to front end for further work
 		*/
+
+		$form_entry = array(); 
+		$name = array(); 
+		$response_text = ''; // response text to twilio
+
 		
-		$form_entry = array();
-		$name = array();
-		$response_text = '';
-
-		$api_details = get_option('twilio-csv');
-		if (is_array($api_details) and count($api_details) != 0) {
-			$TWILIO_SID = $api_details['api_sid'];
-			$TWILIO_TOKEN = $api_details['api_auth_token'];
-		}
-		$twilio = new Client($TWILIO_SID, $TWILIO_TOKEN);
-		$phone_number = $twilio->lookups->v1->phoneNumbers($_POST['From'])->fetch(['type' => ['caller-name']]);
-		$caller_id = $phone_number->callerName;
-
 		$trimmed_number = substr($_POST['From'], 2);
 
 		global $wpdb;
 		$table = $wpdb->prefix . 'twilio_csv_contacts';
+		$phone_number = '';
 
 		try {
 			$number_lookup = $wpdb->get_results('SELECT * FROM ' . $table);
-			if ($number_lookup) {
+			if (!empty($number_lookup)) {
 				foreach ($number_lookup as $sender) {
 					if ($sender->phone_number == $trimmed_number) {
 						$first_name = $sender->first_name;
@@ -755,12 +835,12 @@ class Twilio_Csv_Public
 					}
 				}
 			} else {
-				$response_text .= 'Number Lookup was empty.';
+				$response_text .= 'Number Lookup was empty. Attempted to look up: ' . $trimmed_number . ' against ' . $phone_number . ' in the database.';
 			}
 		} catch (Exception $error) {
-			$response_text .= 'Number Lookup failed: ' . $error;
+			write_log( 'Number Lookup failed: ' . $error );
 		}
-
+		
 		$form_entry['id'] = '';
 		$form_entry['form_id'] = '80';
 		$form_entry['created_by'] = '';
@@ -771,43 +851,70 @@ class Twilio_Csv_Public
 		$form_entry['source_url'] = '';
 		$form_entry['post_id'] = '15948';
 		$form_entry['status'] = 'active';
-		$form_entry['1'] = $_POST['From'];
-		$form_entry['3'] = $_POST['Body'];
+		$form_entry['1'] = $_POST['From'] ?? 'POST EMPTY';
+		$form_entry['3'] = $_POST['Body'] ?? 'BODY EMPTY';
 		$form_entry['4.3'] = $first_name;
 		$form_entry['4.6'] = $last_name;
 		$form_entry['5'] = (!empty($caller_id)) ? $caller_id : 'Caller ID Unavailable';
-		$form_entry['6'] = 'Replied Yes';
-		$form_entry['7'] = $email;
-		$form_entry['8'] = 'Active';
-
+		$form_entry['6'] = $_POST['Disposition'] ?? 'DISPOSITION EMPTY';
+		$form_entry['7'] = $email ?? 'EMAIL EMPTY';
+		$form_entry['8'] = $_POST['Status'] ?? 'STATUS EMPTY';
+		
 		try {
 			$submission = GFAPI::add_entry($form_entry);
-			if ($submission) {
-				$response_text .= 'Okay ' . $first_name . ', I will reach back out via a phone call soon.';
-			}
+			// if ($submission) {
+			// 	$response_text .= 'trigger webhook';
+			// }
 		} catch (Exception $error) {
-			$response_text .= $error;
+			// $response_text .= $error;
+			write_log('Create Message Error');
+			write_log($error);
 		}
-
+		
+		// Message Response Removed
+		
 		echo header('content-type: text/xml');
+		die;
 
-		echo <<<RESPOND
-		<?xml version="1.0" encoding="UTF-8"?>
-		<Response>
-		  <Message>$response_text</Message>
-		</Response>
-		RESPOND;
-		die();
+		// $studioFlowMessage = array_keys($_POST);
+		// foreach ($studioFlowMessage as $key => $value) {
+		// 	$response_text .= $value . ': ' . $_POST[$value] . '<br>';
+		// }
+
+		
+		/*
+		* Old bits and pieces
+		*/
+
+		// echo <<<RESPOND
+		// <?xml version="1.0" encoding="UTF-8" ? >
+		// <Response>
+		//   <Message>Ahoy from WordPress</Message>
+		// </Response>
+		// RESPOND;
+
+		// $api_details = get_option('twilio-csv');
+		// if (is_array($api_details) and count($api_details) != 0) {
+		// 	$TWILIO_SID = $api_details['api_sid'];
+		// 	$TWILIO_TOKEN = $api_details['api_auth_token'];
+		// }
+		// $twilio = new Client($TWILIO_SID, $TWILIO_TOKEN);
+		// $phone_number = $twilio->lookups->v1->phoneNumbers($_POST['From'])->fetch(['type' => ['caller-name']]);
+		// $caller_id = $phone_number->callerName;
 	}
-
+	
 	// end webhook
-
-	function twilio_csv_gravity_view_update_handler() {
-		if (!isset($_GET['lead_id'])) { return; }
+	
+	function twilio_csv_gravity_view_update_handler()
+	{
+		if (!isset($_GET['lead_id'])) {
+			return;
+		}
 		require_once(plugin_dir_path(__FILE__) . '/partials/class-twilio-csv-update-handler.php');
 	}
 
-	function twilio_csv_register_gravity_view_update_handler() {
+	function twilio_csv_register_gravity_view_update_handler()
+	{
 		add_shortcode('update_handler', array($this, 'twilio_csv_gravity_view_update_handler'));
 	}
 
@@ -844,26 +951,30 @@ class Twilio_Csv_Public
 	 *
 	 * @return javascript supposed to update the file-name element
 	 */
-	function twilio_csv_add_javascript() {
+	function twilio_csv_add_javascript()
+	{
 		if (is_page('15948')) {
-		?>
+?>
 			<script type="text/javascript">
 				jQuery(document).ready(function() {
 					const file_uploader = document.getElementById("csv-upload");
 					const file_text = document.getElementById("file-name");
-	
+
 					/* file.onclick = alert("Yeah the script is working"); */
-						
+
 					function update_file_size(e) {
 						const [file] = e.target.files;
 						// Get the file name and size
-						const { name: fileName, size } = file;
+						const {
+							name: fileName,
+							size
+						} = file;
 						// Convert size in bytes to kilo bytes
 						const fileSize = (size / 1000).toFixed(2);
 						// Set the text content
 						const fileNameAndSize = `${fileName} - ${fileSize} KB and a bunch of other stuff`;
 						file_text.textContent = fileNameAndSize;
-						
+
 					}
 
 					jQuery("#csv-upload").on("change", update_file_size(this));
@@ -871,7 +982,7 @@ class Twilio_Csv_Public
 
 				});
 			</script>
-			<?php
+<?php
 		}
 	}
 } //  class Twilio_Csv_Public()
