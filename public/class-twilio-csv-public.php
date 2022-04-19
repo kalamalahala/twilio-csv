@@ -31,16 +31,16 @@ if (!function_exists('wp_handle_upload')) {
  */
 if (!function_exists('write_log')) {
 
-    function write_log($log) {
-        if (true === WP_DEBUG) {
-            if (is_array($log) || is_object($log)) {
-                error_log(print_r($log, true));
-            } else {
-                error_log($log);
-            }
-        }
-    }
-
+	function write_log($log)
+	{
+		if (true === WP_DEBUG) {
+			if (is_array($log) || is_object($log)) {
+				error_log(print_r($log, true));
+			} else {
+				error_log($log);
+			}
+		}
+	}
 }
 
 // use Shuchkin\SimpleXLSX as XLSX;
@@ -177,6 +177,7 @@ class Twilio_Csv_Public
 		$new_contacts = 0;
 		$contact_decoded = json_decode($contact_data);
 
+
 		global $wpdb;
 		$csv_table = $wpdb->prefix . 'twilio_csv_entries';
 		$contact_table = $wpdb->prefix . 'twilio_csv_contacts';
@@ -206,22 +207,70 @@ class Twilio_Csv_Public
 			array_push($existing_ids, $entry->unique_id);
 		}
 
+		// Display contents of uploaded file to be processed
+
+		if (!is_null($contact_decoded[0]->{'First Name'})) {
+			$uploaded_file_type = 'RMS';
+		} else if (!is_null($contact_decoded[0]->Name)) {
+			$uploaded_file_type = 'RMS2';
+		} else {
+			print 'Error';
+			die;
+		}
+
+
+
+
 		foreach ($contact_decoded as $contact) {
-			if (is_null($contact->CellPhone)) {
-				write_log('No Cell Phone Number in array, skipping creating contact');
-				$return_html .= '<li>No Cell Phone Number in array, skipping creating contact</li>';
+			// Handle First name / Last Name formatting
+			if ($uploaded_file_type == 'RMS') {
+				if (is_null($contact->CellPhone)) {
+					write_log('No Cell Phone Number in array, skipping creating contact');
+					$return_html .= '<li>No Cell Phone Number in array, skipping creating contact</li>';
+					continue;
+				}
+				$full_name = $contact->{'First Name'} . $contact->{'Last Name'} . $contact->CellPhone;
+				$unique_id = hash('sha256', $full_name);
+				$contact_entry = array(
+					'id' => '',
+					'first_name' => $contact->{'First Name'},
+					'last_name' => $contact->{'Last Name'},
+					'phone_number' => $contact->CellPhone,
+					'email' => $contact->EmailAddress,
+					'unique_id' => $unique_id
+				);
+			} else if ($uploaded_file_type == 'RMS2') {
+				if (is_null($contact->Telephone)) {
+					write_log('No Cell Phone Number in array, skipping creating contact');
+					$return_html .= '<li>No Cell Phone Number in array, skipping creating contact</li>';
+					continue;
+				}
+				$name_salt = $contact->Name . $contact->Telephone;
+				$unique_id = hash('sha256', $name_salt);
+				$first_and_last = explode(' ', $contact->Name);
+				$first_name = $first_and_last[0];
+
+				// collect remaining names into $surnames
+				$surnames = '';
+				foreach ($first_and_last as $key => $value) {
+					if ($key > 0) {
+						$surnames .= $value . ' ';
+					}
+				}
+
+				$contact_entry = array(
+					'id' => '',
+					'first_name' => $first_name,
+					'last_name' => $surnames,
+					'phone_number' => $contact->Telephone,
+					'email' => $contact->Email,
+					'unique_id' => $unique_id
+				);
+			} else {
+				write_log('Data format not recognized, contact creation skipped');
+				$return_html .= '<li>Data format not recognized, contact creation skipped</li>';
 				continue;
 			}
-			$full_name = $contact->{'First Name'} . $contact->{'Last Name'} . $contact->CellPhone;
-			$unique_id = hash('sha256', $full_name);
-			$contact_entry = array(
-				'id' => '',
-				'first_name' => $contact->{'First Name'},
-				'last_name' => $contact->{'Last Name'},
-				'phone_number' => $contact->CellPhone,
-				'email' => $contact->EmailAddress,
-				'unique_id' => $unique_id
-			);
 
 			if (in_array($unique_id, $existing_ids)) {
 				$return_html .= '<li>' . $contact_entry['first_name'] . ' ' . $contact_entry['last_name'] . ' skipped creating <em>Caller ID</em> , contact exists.</li>';
@@ -231,7 +280,7 @@ class Twilio_Csv_Public
 					$return_html .= '<li>' . $contact_entry['first_name'] . ' ' . $contact_entry['last_name'] . ' added to contact list</li>';
 					$new_contacts++;
 				} catch (Exception $error) {
-					write_log( $error . '<br>Unable to add contact to database');
+					write_log($error . '<br>Unable to add contact to database');
 				}
 			}
 		}
@@ -272,6 +321,7 @@ class Twilio_Csv_Public
 			'pagination' => 10
 		), $atts, 'create_csv_upload_form');
 		$list_csv_contents = '';
+		$allowable_headers = array('Office', 'Record Type');
 
 		// begin parse if file exists
 		if (isset($_FILES['csv-upload'])) {
@@ -320,30 +370,25 @@ class Twilio_Csv_Public
 				$skipped_rows = 0;
 
 				$upload_array = $parsed_file->getActiveSheet()->toArray();
+				$first_cell = $upload_array[0][0];
 
-				
-				foreach ($upload_array as $row => $cell) {
-					if ($row === 0) {
-						if ($cell[0] !== 'Office') {
-							$list_csv_contents .= 'Unexpected format! "Office" was not found in the very first cell. Was this a RMS file?';
-							break;
+				if (!in_array($first_cell, $allowable_headers)) {
+					return '<div class="alert alert-danger">Unrecognized headers. Contact admin.</div>';
+				}
+
+				if ($first_cell == 'Office') {
+					foreach ($upload_array as $row => $cell) {
+						if ($row === 0) {
+							$header_values = $cell;
+							continue;
 						}
-						$header_values = $cell;
-						continue;
-					}
-					
-					// if (!$cell[14]) {
-						// 	continue;
-						// }
 
-						
-						
-						// $remove_items = array('-', '(', ')', '+', ' ');
-						// $stripped_number = strip_phone_extras()
-						// $cell[14] = str_replace($remove_items, '', $cell[14]);
-						
+						// Hard Code RMS XLSX Files for now till new form is created
+
 						for ($i = 13; $i >= 16; $i++) {
-							if (!empty($cell[$i])) { strip_phone_extras($cell[$i]) ; }
+							if (!empty($cell[$i])) {
+								strip_phone_extras($cell[$i]);
+							}
 							if ($cell[$i][0] == '1' && strlen($cell[$i]) == '10') {
 								$cell[$i] = substr($cell[$i], 1);
 							}
@@ -352,64 +397,55 @@ class Twilio_Csv_Public
 						if (empty($cell[14])) {
 							$cell[14] = $cell[16] ?? $cell[13] ?? $cell[15] ?? '';
 						}
-						
+
 						$listed_cell_phone_number = $cell[16] ?? $cell[14] ?? $cell[13] ?? $cell[15] ?? '';
-					
+
 						if (!in_array($listed_cell_phone_number, $phone_numbers_listed)) {
-						array_push($phone_numbers_listed, $listed_cell_phone_number);
-						$json_rows[] = array_combine($header_values, $cell);
-						$parsed_rows++;
-					} else {
-						// Cell phone already exists in temporary array, skip this one
-						$skipped_rows++;
-						continue;
+							array_push($phone_numbers_listed, $listed_cell_phone_number);
+							$json_rows[] = array_combine($header_values, $cell);
+							$parsed_rows++;
+						} else {
+							// Cell phone already exists in temporary array, skip this one
+							$skipped_rows++;
+							continue;
+						}
 					}
+				} else if ($first_cell == 'Record Type') {
+					foreach ($upload_array as $row => $cell) {
+						if ($row === 0) {
+							$header_values = $cell;
+							continue;
+						}
+
+						$listed_cell_phone_number = $cell[5] ?? '';
+						// Regex to remove all special characters from cell[1]
+						// $cell[1] = preg_replace('/(?:[^a-z0-9 ]|(?<=[\'\"])s)/', '', $cell[1]);
+
+						// Remove all special characters from Name field
+						$cell[1] = preg_replace('/[^A-Za-z0-9\-\s]/', ' ', $cell[1]);
+						$cell[1] = str_replace(array('  ', '   '), ' ', $cell[1]);
+
+						if (!in_array($listed_cell_phone_number, $phone_numbers_listed) && !empty($listed_cell_phone_number)) {
+							array_push($phone_numbers_listed, $listed_cell_phone_number);
+							$json_rows[] = array_combine($header_values, $cell);
+							$parsed_rows++;
+						} else {
+							// Cell phone already exists in temporary array, skip this one
+							$skipped_rows++;
+							continue;
+						}
+					}
+				} else {
+					$list_csv_contents .= '<div class="alert alert-danger">Unrecognized headers. Contact admin.</div>';
 				}
-				
-				// print '<pre>';
-				// var_dump($json_rows);
-				// print '</pre>';
-				// die();
 
-				// print('<pre>');
-				// var_dump($json_rows);
-				// print('</pre>');
-				// die;
-
-				// // Get Header values, strip that row, then load all rows into a [int][ $header_values => $value ] array 
-				// foreach ($parsed_file->rows() as $k => $r) {
-
-				// 	// Check for "Office" in first row and first column, abort if not present
-				// 	// otherwise assign header_values
-				// 	if ($k === 0) {
-				// 		if ($r[0] !== 'Office') {
-				// 			return 'Unexpected format!';
-				// 		}
-				// 		$header_values = $r;
-				// 		continue;
-				// 	}
-				// 	// @todo hardcoding CellPhone for now, $header_values[14] or $header_values['CellPhone']
-				// 	// or maybe this?: ignore rows that do not have anything in column 14
-				// 	if (!$r[14]) {
-				// 		continue;
-				// 	}
-
-				// 	//FORMAT CELL PHONE
-				// 	$remove_items = array('-', '(', ')', '+', ' ');
-				// 	$r[14] = str_replace($remove_items, '', $r[14]);
-				// 	if ($r[14][0] == '1' && strlen($r[14]) == '10') {
-				// 		$r[14] = substr($r[14], 1);
-				// 	}
-
-				// 	$json_rows[] = array_combine($header_values, $r);
-				// }
 
 				$trim_rows = count($json_rows);
 
 				$file_data = array();
 				$file_data['file_name'] = $_FILES['csv-upload']['tmp_name'];
 				$file_data['rows'] = $trim_rows;
-				$file_data['date'] = date('g:i:s A m/d/Y', strtotime('now -5 hours'));
+				$file_data['date'] = date('g:i:s A m/d/Y', strtotime('now -4 hours'));
 
 				// attempt to add CSV to database
 				if (!empty($json_rows) && $_POST['confirm-upload'] == 'confirm') {
@@ -421,56 +457,16 @@ class Twilio_Csv_Public
 						echo 'Error: ' . $e;
 					}
 				}
-				// print('<pre>');
-				// print('Calling process_pending_messages to see var dump: ' . $process_file);
-				// // print_r($json_rows);
-				// // print_r($json_rows[0]);				
-				// // print_r($json_rows[1]);
-				// // var_dump($header_values);				
-				// print('</pre>');
 
-
-				// $dim = $parsed_file->dimension();
-				// $pagination_value = $atts['pagination'];
 				foreach ($file_info as $worksheet) {
 					$cols = $worksheet['totalColumns'];
 					$rows = $worksheet['totalRows'] - 1;
 				}
 
-				// $skipped = $rows - $trim_rows;
-
-
-
-				// create associative array of Column Names
-				// $sheet_columns = array();
-				// for ($i = 0; $i < $cols; $i ++) {
-				// 	$sheet_columns .= isset($json_rows[$k][$r]) ? $json_rows[$k][$r] : 'zzz' ) . '</td>';
-				// }
-
 				$list_csv_contents .= '<div class="file-contents"><h4>Contents of File</h4>';
 				$list_csv_contents .= '<p>' . $rows . ' rows in the uploaded .xlsx file. ';
-				$list_csv_contents .= 'Campaign created with ' .$trim_rows . ' contacts.</p></div>';
+				$list_csv_contents .= 'Campaign created with ' . $trim_rows . ' contacts.</p></div>';
 				$list_csv_contents .= ($skipped_rows > 0) ? '<div class="alert-warning">' . $skipped_rows . ' entries had matching phone numbers and were not included in the upload.</div>' : '';
-				// $list_csv_contents .= '<table border="1" cellpadding="3" style="border-collapse: collapse">';
-
-				// $row_count = 0;
-				// foreach ($json_rows as $k => $r) {
-				// 	if ($row_count > $pagination_value) {
-				// 		break;
-				// 	}
-				// 	// ignore rows that do not have a cell phone value
-				// 	if (!$r['CellPhone']) {
-				// 		continue;
-				// 	}
-				// 	//      if ($k == 0) continue; // skip first row
-				// 	$list_csv_contents .= '<tr>';
-				// 	for ($i = 0; $i < $cols; $i++) {
-				// 		$list_csv_contents .= '<td>' . (isset($json_rows[$k][$header_values[$i]]) ? $json_rows[$k][$header_values[$i]] : 'zzz') . '</td>';
-				// 	}
-				// 	$list_csv_contents .= '</tr>';
-				// 	$row_count++;
-				// }
-				// $list_csv_contents .= '</table>';
 			} else {
 				$list_csv_contents .= 'Parse error.';
 			}
@@ -558,6 +554,7 @@ class Twilio_Csv_Public
 											<label for="body">Message Body
 												<select name="body" id="message-body">
 												<option value="message-1">Hey FIRSTNAME, we saw your resume...</option> 
+												<option value="message-2">Hi FIRSTNAME, I\'m with Globe Life...</option>
 												</select>
 											</label>
 											</div>
@@ -597,6 +594,14 @@ class Twilio_Csv_Public
 			// Everyone on the uploaded xlsx file
 			$contact_array = json_decode($entry->contact_data);
 		}
+		if (!is_null($contact_array[0]->{'First Name'})) {
+			$uploaded_file_type = 'RMS';
+		} else if (!is_null($contact_array[0]->Name)) {
+			$uploaded_file_type = 'RMS2';
+		} else {
+			print 'Error';
+			die;
+		}
 
 		// Go get API Keys and open a new Client
 		$api_details = get_option('twilio-csv');
@@ -619,9 +624,16 @@ class Twilio_Csv_Public
 
 		// Process list of contacts with selected message
 		foreach ($contact_array as $contact) {
-			$recipient = $contact->CellPhone;
-			// var_dump($contact);
-			$TWILIO_MESSAGE_BODY = str_replace('FIRSTNAME', $contact->{'First Name'}, $selected_message);
+			
+			$recipient = $contact->CellPhone ?? $contact->Telephone;
+			if ($uploaded_file_type == 'RMS') $first_name = $contact->{'First Name'};
+			else if ($uploaded_file_type == 'RMS2') $first_name = explode(' ', $contact->Name)[0];
+			if (!$recipient) {
+				$message_result_list .= '<li>Error: No Cell Phone or Telephone Number</li>';
+				continue;
+			}
+			
+			$TWILIO_MESSAGE_BODY = str_replace('FIRSTNAME', $first_name, $selected_message);
 			// Add each message phone number to array of contacted numbers to prevent duplicates on same CSV file.
 			if (!in_array($recipient, $contacted_numbers)) {
 				try {
@@ -635,7 +647,7 @@ class Twilio_Csv_Public
 					if ($send_message) $message_result_list .= '<li>Message sent to <a href="tel:' . $recipient . '" title="Call ' . $recipient . '">' . $recipient . '</a></li>';
 					$message_count++; // total messages sent
 				} catch (\Exception $throwable) {
-					// GFCommon::log_error($throwable);
+					GFCommon::log_error($throwable);
 					write_log('Error sending message to ' . $recipient . '. Details: ' . $throwable);
 				}
 			}
@@ -717,25 +729,25 @@ class Twilio_Csv_Public
 		}
 	}
 
-	
+
 	function handle_incoming_message_from_twilio()
 	{
-		
-		
+
+
 		// creating a webhook to handle POST from twilio
-		
+
 		// if (!$_POST['body']) return;
-		
+
 		// $gforms_consumer = "ck_6a4204b5c2e658c7511d1eac3bfc25efb3337922";
 		// $gforms_secret = "cs_056ef416b003f7c6c78d922c687e9351da20c1a9";
 		// $url = "https://thejohnson.group/wp-json/gf/v2/forms/80/entries";
 		// $method = "POST";
 		// $args = array();
-		
+
 		// $from = $_POST['from'];
 		// $body = $_POST['body'];
 		// $date_timestamp = new DateTime();
-		
+
 		// $body_content = '{
 		// 	"date_created" : ' . $date_timestamp . ',
 		// 	"is_starred"   : 0,
@@ -749,10 +761,10 @@ class Twilio_Csv_Public
 		// 	"1"            : ' . $from . ',
 		// 	"3"            : ' . $body . '
 		// }';
-		
+
 		// require_once('class-oauth-request.php');
 		// $oauth = new OAuth_Request($url, $gforms_consumer, $gforms_secret, $method, $args);
-		
+
 		// $response = wp_remote_request(
 		// 	$oauth->get_url(),
 		// 	array(
@@ -761,7 +773,7 @@ class Twilio_Csv_Public
 		// 		'headers' => array('Content-Type' => 'application/json')
 		// 		)
 		// 	);
-			
+
 		// 	// Check the response code.
 		// 	if (wp_remote_retrieve_response_code($response) != 200 || (empty(wp_remote_retrieve_body($response)))) {
 		// 		// If not a 200, HTTP request failed.
@@ -769,36 +781,36 @@ class Twilio_Csv_Public
 		// 	} else {
 		// 		return 'Message sent';
 		// 	}
-		}
-		
-		
-		// begin webhook
-		function register_twilio_csv_route()
-		{
-			register_rest_route('twilio_csv/v1', '/receive_sms', array(
-				'methods' => 'POST',
-				'callback' => array($this, 'trigger_receive_sms')
-			));
-		}
-		
-		// begin bulk webhook TODO: possibly remove and handle logic within trigger_receive_sms
-		function register_twilio_bulk_route()
-		{
-			register_rest_route('twilio_csv/v1', '/receive_bulk_sms', array(
-				'methods' => 'POST',
-				'callback' => array($this, 'trigger_receive_bulk_sms')
-			));
-		}
-		
-		// function trigger_receive_bulk_sms() {
-		// 	if (!$_POST['Body']) return;
-		// 	$message = $this->trigger_receive_sms('bulk');
-		// }
-		
-		function trigger_receive_sms()
-		{
-			// Escape if no POST data to webhook
-			if (!isset($_POST)) return;
+	}
+
+
+	// begin webhook
+	function register_twilio_csv_route()
+	{
+		register_rest_route('twilio_csv/v1', '/receive_sms', array(
+			'methods' => 'POST',
+			'callback' => array($this, 'trigger_receive_sms')
+		));
+	}
+
+	// begin bulk webhook TODO: possibly remove and handle logic within trigger_receive_sms
+	function register_twilio_bulk_route()
+	{
+		register_rest_route('twilio_csv/v1', '/receive_bulk_sms', array(
+			'methods' => 'POST',
+			'callback' => array($this, 'trigger_receive_bulk_sms')
+		));
+	}
+
+	// function trigger_receive_bulk_sms() {
+	// 	if (!$_POST['Body']) return;
+	// 	$message = $this->trigger_receive_sms('bulk');
+	// }
+
+	function trigger_receive_sms()
+	{
+		// Escape if no POST data to webhook
+		if (!isset($_POST)) return;
 
 		// Twilio Key List:
 		// ToCountry, ToState, SmsMessageSid, NumMedia, ToCity, FromZip, SmsSid, FromState, SmsStatus, FromCity
@@ -812,11 +824,11 @@ class Twilio_Csv_Public
 		* Add message to front end for further work
 		*/
 
-		$form_entry = array(); 
-		$name = array(); 
+		$form_entry = array();
+		$name = array();
 		$response_text = ''; // response text to twilio
 
-		
+
 		$trimmed_number = substr($_POST['From'], 2);
 
 		global $wpdb;
@@ -838,9 +850,9 @@ class Twilio_Csv_Public
 				$response_text .= 'Number Lookup was empty. Attempted to look up: ' . $trimmed_number . ' against ' . $phone_number . ' in the database.';
 			}
 		} catch (Exception $error) {
-			write_log( 'Number Lookup failed: ' . $error );
+			write_log('Number Lookup failed: ' . $error);
 		}
-		
+
 		$form_entry['id'] = '';
 		$form_entry['form_id'] = '80';
 		$form_entry['created_by'] = '';
@@ -859,7 +871,7 @@ class Twilio_Csv_Public
 		$form_entry['6'] = $_POST['Disposition'] ?? 'DISPOSITION EMPTY';
 		$form_entry['7'] = $email ?? 'EMAIL EMPTY';
 		$form_entry['8'] = $_POST['Status'] ?? 'STATUS EMPTY';
-		
+
 		try {
 			$submission = GFAPI::add_entry($form_entry);
 			// if ($submission) {
@@ -870,9 +882,9 @@ class Twilio_Csv_Public
 			write_log('Create Message Error');
 			write_log($error);
 		}
-		
+
 		// Message Response Removed
-		
+
 		echo header('content-type: text/xml');
 		die;
 
@@ -881,7 +893,7 @@ class Twilio_Csv_Public
 		// 	$response_text .= $value . ': ' . $_POST[$value] . '<br>';
 		// }
 
-		
+
 		/*
 		* Old bits and pieces
 		*/
@@ -902,15 +914,26 @@ class Twilio_Csv_Public
 		// $phone_number = $twilio->lookups->v1->phoneNumbers($_POST['From'])->fetch(['type' => ['caller-name']]);
 		// $caller_id = $phone_number->callerName;
 	}
-	
+
 	// end webhook
-	
+
 	function twilio_csv_gravity_view_update_handler()
 	{
 		if (!isset($_GET['lead_id'])) {
 			return;
 		}
 		require_once(plugin_dir_path(__FILE__) . '/partials/class-twilio-csv-update-handler.php');
+	}
+
+	function twilio_csv_display_upload_form()
+	{
+		require_once(plugin_dir_path(__FILE__) . '/partials/class-twilio-csv-upload-form.php');
+		return;
+	}
+
+	function twilio_csv_register_display_upload_form()
+	{
+		add_shortcode('twilio_csv_display_upload_form', array($this, 'twilio_csv_display_upload_form'));
 	}
 
 	function twilio_csv_register_gravity_view_update_handler()

@@ -194,7 +194,9 @@ class Twilio_Csv {
 		$this->loader->add_shortcode( 'twilio_csv_show_results', $plugin_public, 'twilio_csv_register_shortcodes_send' );
 		$this->loader->add_shortcode( 'send_single_message', $plugin_public, 'twilio_csv_register_shortcodes_send_single' );
 		$this->loader->add_shortcode( 'msg_handler', $plugin_public, 'twilio_csv_register_shortcodes_handle' );
-		$this->loader->add_shortcode( 'update_handler', $plugin_public, 'twilio_csv_register_gravity_view_update_handler' );		
+		$this->loader->add_shortcode( 'update_handler', $plugin_public, 'twilio_csv_register_gravity_view_update_handler' );
+		// twilio_csv_display_upload_form
+		$this->loader->add_shortcode( 'twilio_csv_display_upload_form', $plugin_public, 'twilio_csv_register_display_upload_form' );		
 
 	}
 
