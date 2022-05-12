@@ -2,3 +2,4 @@
 auth
 /twilio/
 /vendor/
+*.code-workspace

@@ -1,5 +1,22 @@
 <?php // Handle update requests for embedded Gravity View
 
+// Class to handle the update requests
+
+class Twilio_Csv_Action_Buttons {
+
+    // Collect passed in AJAX data
+    public function __construct( $data ) {
+        $this->data = $data;
+    }
+    
+
+}
+
+// if (isset($_POST['ajax_handler'])) {
+//     echo 'hello';
+//     wp_die();
+// }
+
 $dispositions = array(
     'e' => 'Email Sent',
     'r' => 'Rejected',
@@ -7,15 +24,32 @@ $dispositions = array(
     'd' => 'Complete',
     'a' => 'Active'
 );
-$contact_id = (isset($_GET['lead_id'])) ? $_GET['lead_id'] : null;
+$wednesday_or_friday = array(
+    'w' => 'Wednesday',
+    'f' => 'Friday'
+);
+
+$contact_id = (isset($_GET['lead_id'])) ? $_GET['lead_id'] : '';
 $new_status = (isset($_GET['lead_action'])) ? $dispositions[$_GET['lead_action']] : null;
-$action_type = (!is_null($new_status)) ? $_GET['lead_action'] : null;
+$action_type = (!is_null($new_status)) ? $_GET['lead_action'] : '';
+$meeting_day = (isset($_GET['meeting_day'])) ? $wednesday_or_friday[$_GET['meeting_day']] : null;
 $form_id = 80;
+
+// Handle AJAX request from Recent Messages Action Buttons
+// Scrape POST and return JSON response
+// foreach ($_POST as $key => $value) {
+//     $payload[] = array(
+//         'key' => $key,
+//         'value' => $value
+//     );
+// }
+// wp_send_json($payload);
+// wp_die($payload);
 
 if (!is_null($contact_id) && !is_null($new_status)) {
     
     try {
-        update_gf_entry_with_status($contact_id, $new_status, $action_type, $form_id);
+        update_gf_entry_with_status($contact_id, $new_status, $action_type, $form_id, $meeting_day);
     } catch (Exception $e) {
         print 'Error updating entry. Stack trace: <pre>';
         var_dump($e);
@@ -31,13 +65,14 @@ if (!is_null($contact_id) && !is_null($new_status)) {
 //     return $result;
 // }
 
-function update_gf_entry_with_status(int $entry, string $status, string $action, int $form_id) {
+function update_gf_entry_with_status(int $entry, string $status, string $action, int $form_id, string $meeting_day = null) {
     $form = GFAPI::get_entry($entry);
 
     switch ($action) {
         case 'e': // Update Status and Mark as Complete
             $form['6'] = $status;
             $form['8'] = 'Complete';
+            $form['9'] = (is_null($meeting_day)) ? '' : $meeting_day;
             break;
 
         case 'r': // Update Status and Mark as Complete
@@ -66,7 +101,7 @@ function update_gf_entry_with_status(int $entry, string $status, string $action,
     */
 
     if ($action == 'e') {
-        $form_model = GFAPI::get_form('80');
+        $form_model = GFAPI::get_form($form_id);
         try {
             GFAPI::send_notifications($form_model, $form);
         } catch (Exception $e) {

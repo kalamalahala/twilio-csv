@@ -618,8 +618,8 @@ class Twilio_Csv_Public
 		// List of programmed messages with replacement variables.
 		$messages = array();
 		$contacted_numbers = array();
-		$messages['message-1'] = 'Hey FIRSTNAME, my name is Ariel with The Johnson Group. We saw your resume online. Are you still looking for a career opportunity?';
-		$messages['message-2'] = 'Hi FIRSTNAME, Im Ariel with Globe Life - Liberty Division. We received your request for employment consideration. Are you still looking for a career?';
+		$messages['message-1'] = 'Hey FIRSTNAME, my name is Amila with The Johnson Group. We saw your resume online. Are you still looking for a career opportunity?';
+		$messages['message-2'] = 'Hi FIRSTNAME, Im Amila with Globe Life - Liberty Division. We received your request for employment consideration. Are you still looking for a career?';
 		$selected_message = $messages[$_POST['body']];
 
 		// Process list of contacts with selected message
@@ -791,21 +791,23 @@ class Twilio_Csv_Public
 			'methods' => 'POST',
 			'callback' => array($this, 'trigger_receive_sms')
 		));
-	}
-
-	// begin bulk webhook TODO: possibly remove and handle logic within trigger_receive_sms
-	function register_twilio_bulk_route()
-	{
-		register_rest_route('twilio_csv/v1', '/receive_bulk_sms', array(
+		register_rest_route('twilio_csv/v1', '/action_button', array(
 			'methods' => 'POST',
-			'callback' => array($this, 'trigger_receive_bulk_sms')
+			'callback' => array($this, 'trigger_action_button')
 		));
 	}
 
-	// function trigger_receive_bulk_sms() {
-	// 	if (!$_POST['Body']) return;
-	// 	$message = $this->trigger_receive_sms('bulk');
+	// // create rest hook for action button handler
+	// function register_twilio_action_route()
+	// {
 	// }
+
+	function trigger_action_button()
+	{
+		if (!isset($_POST)) return;
+		echo 'action button triggered';
+		wp_die();
+	}
 
 	function trigger_receive_sms()
 	{
