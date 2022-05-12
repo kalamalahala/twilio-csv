@@ -924,7 +924,13 @@ class Twilio_Csv_Public
 		if (!isset($_GET['lead_id'])) {
 			return;
 		}
-		require_once(plugin_dir_path(__FILE__) . '/partials/class-twilio-csv-update-handler.php');
+		// Buffer include
+		ob_start();
+		$content = require_once(plugin_dir_path(__FILE__) . '/partials/class-twilio-csv-update-handler.php');
+		ob_end_clean();
+		echo $content;
+		return;
+
 	}
 
 	function twilio_csv_display_upload_form()
