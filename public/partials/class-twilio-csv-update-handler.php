@@ -2,15 +2,15 @@
 
 // Class to handle the update requests
 
-class Twilio_Csv_Action_Buttons {
+// class Twilio_Csv_Action_Buttons {
 
-    // Collect passed in AJAX data
-    public function __construct( $data ) {
-        $this->data = $data;
-    }
+//     // Collect passed in AJAX data
+//     public function __construct( $data ) {
+//         $this->data = $data;
+//     }
     
 
-}
+// }
 
 // if (isset($_POST['ajax_handler'])) {
 //     echo 'hello';
@@ -34,6 +34,9 @@ $new_status = (isset($_GET['lead_action'])) ? $dispositions[$_GET['lead_action']
 $action_type = (!is_null($new_status)) ? $_GET['lead_action'] : '';
 $meeting_day = (isset($_GET['meeting_day'])) ? $wednesday_or_friday[$_GET['meeting_day']] : null;
 $form_id = 80;
+
+// print 'Page successfully included';
+// die;
 
 // Handle AJAX request from Recent Messages Action Buttons
 // Scrape POST and return JSON response

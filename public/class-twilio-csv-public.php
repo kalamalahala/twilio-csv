@@ -929,7 +929,7 @@ class Twilio_Csv_Public
 		$content = require_once(plugin_dir_path(__FILE__) . '/partials/class-twilio-csv-update-handler.php');
 		ob_end_clean();
 		echo $content;
-		return;
+		return '&nbsp;';
 
 	}
 
