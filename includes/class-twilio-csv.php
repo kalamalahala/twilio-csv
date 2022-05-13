@@ -198,6 +198,7 @@ class Twilio_Csv {
 		$this->loader->add_shortcode( 'update_handler', $plugin_public, 'twilio_csv_register_gravity_view_update_handler' );
 		// twilio_csv_display_upload_form
 		$this->loader->add_shortcode( 'twilio_csv_display_upload_form', $plugin_public, 'twilio_csv_register_display_upload_form' );		
+		$this->loader->add_shortcode( 'twilio_csv_reports', $plugin_public, 'twilio_csv_register_shortcodes_reports' );
 
 	}
 

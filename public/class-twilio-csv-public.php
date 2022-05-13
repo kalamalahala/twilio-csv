@@ -10,17 +10,14 @@
  * @subpackage Twilio_Csv/public
  */
 
-// Twilio Dependency
+// Dependencies
 require_once(plugin_dir_path(__FILE__) . '/../twilio/Twilio/autoload.php');
+require_once(plugin_dir_path(__FILE__) . '/../vendor/autoload.php');
+require_once(plugin_dir_path(__FILE__) . '/partials/class-generate-report-from-api.php');
 
 use Twilio\Rest\Client;
-// use Twilio\TwiML\MessagingResponse;
-// use Twilio\TwiML\TwiML;
-
-// json_encode dependency from github
-require_once(plugin_dir_path(__FILE__) . '/../vendor/autoload.php');
-
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use \TwilioCsvReports;
 
 if (!function_exists('wp_handle_upload')) {
 	require_once(ABSPATH . 'wp-admin/includes/file.php');
@@ -976,6 +973,18 @@ class Twilio_Csv_Public
 		add_shortcode('twilio_csv_show_results', array($this, 'twilio_csv_show_results'));
 	}
 
+	// Shortcode to render Reports output
+	function twilio_csv_register_shortcodes_reports()
+	{
+		add_shortcode('twilio_csv_reports', array($this, 'twilio_csv_reports'));
+	}
+
+	function twilio_csv_reports() {
+		$return_content = '';
+		$messaging_reports = new TwilioCsvReports;
+		$return_content .= $messaging_reports->get_reports();
+		return $return_content;
+	}
 
 	/**
 	 * This hooks into the recruiting page and deposits some javascript, but doesn't seem to function yet.
