@@ -36,9 +36,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Rename this for your plugin and update it as you release new versions.
  */
 define( 'TWILIO_CSV_VERSION', '1.1.75' );
-define( 'TWILIO_ACCOUNT_SID', 'ACd4b4efa2054f2aaf8c06ab0693f3f65b');
-define( 'TWILIO_AUTH_TOKEN', '9ec692cfdb7cb72c02744e6a099c8bec');
-define( 'TWILIO_PRIMARY_NUMBER', '+13868886995');
+
 
 /**
  * The code that runs during plugin activation.

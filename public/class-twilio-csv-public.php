@@ -17,7 +17,6 @@ require_once(plugin_dir_path(__FILE__) . '/partials/class-generate-report-from-a
 
 use Twilio\Rest\Client;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use \TwilioCsvReports;
 
 if (!function_exists('wp_handle_upload')) {
 	require_once(ABSPATH . 'wp-admin/includes/file.php');
@@ -982,8 +981,17 @@ class Twilio_Csv_Public
 	function twilio_csv_reports() {
 		$return_content = '';
 		$messaging_reports = new TwilioCsvReports;
-		$return_content .= $messaging_reports->get_reports();
-		return $return_content;
+		$outbound_messages = $messaging_reports->get_outbound();
+		$inbound_messages = $messaging_reports->get_inbound();
+		echo '<pre>';
+		// var_dump($outbound_messages);
+		// display each message from the JSON object as a list item
+		foreach ($outbound_messages as $message) {
+			$return_content .= '<li>' . $message->body . '</li>';
+		}
+		echo $return_content;
+		echo '</pre>';
+		// var_dump($inbound_messages);
 	}
 
 	/**
