@@ -468,7 +468,7 @@ class Twilio_Csv_Public
 			}
 		}
 
-		$upload_form = '    <div class="twilio-csv-form-container">
+		$upload_form = '<div class="twilio-csv-form-container">
         <form
         name="twilio-csv-upload-form"
         id="twilio-csv-upload-form"
@@ -477,19 +477,24 @@ class Twilio_Csv_Public
         enctype="multipart/form-data"
         >
         <div class="upload-section">
-        <label for="csv-upload">Upload Contacts (.xlsx)
-        <input
-          type="file"
-          id="csv-upload"
-          name="csv-upload"
-          accept=".xlsx"
-		  class="upload-file"
-        /></label><p id="file-name" class="file-name"></p></div>
+        	<label for="csv-upload">Choose RMS file (.xls, .xlsx)
+        	<input
+			type="file"
+			id="csv-upload"
+			name="csv-upload"
+			accept=".xlsx"
+			class="upload-file"
+        	/>
+			</label>
+			<p id="file-name" class="file-name"></p>
+		</div>
         ' . ((!empty($list_csv_contents)) ? '<div class="list-csv-contents">' . $list_csv_contents . '</div>' : '') .
-			'<div class="confirm-upload"><label for="confirm-upload"><input type="checkbox" value="confirm" name="confirm-upload" checked>
-		Add file to database?</label></div>
+		'<div class="confirm-upload">
+			<label for="confirm-upload">
+			<input type="checkbox" value="confirm" name="confirm-upload" checked>Add file to database</label>
+		</div>
 		<div class="submit-contacts-to-twilio">
-          <input type="submit" value="Upload Contact List" name="csv-submit"><p class="description-text">This action will create a new Campaign. No text messages will be sent yet.</p>
+          <input type="submit" value="Upload Contact List" name="csv-submit" />
         </div>
 
       </form>
