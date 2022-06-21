@@ -614,13 +614,15 @@ class Twilio_Csv_Public
 		// List of programmed messages with replacement variables.
 		$messages = array();
 		$contacted_numbers = array();
+		$introductory_message = '';
 		$messages['message-1'] = 'Hey FIRSTNAME, my name is Amila with The Johnson Group. We saw your resume online. Are you still looking for a career opportunity?';
 		$messages['message-2'] = 'Hi FIRSTNAME, Im Amila with Globe Life - Liberty Division. We received your request for employment consideration. Are you still looking for a career?';
+		$opt_out_instructions = 'If you are no longer looking for a career opportunity, reply STOP to be removed from our list.';
 		$selected_message = $messages[$_POST['body']];
 
 		// Process list of contacts with selected message
 		foreach ($contact_array as $contact) {
-			
+
 			$recipient = $contact->CellPhone ?? $contact->Telephone;
 			if ($uploaded_file_type == 'RMS') $first_name = $contact->{'First Name'};
 			else if ($uploaded_file_type == 'RMS2') $first_name = explode(' ', $contact->Name)[0];
@@ -628,11 +630,33 @@ class Twilio_Csv_Public
 				$message_result_list .= '<li>Error: No Cell Phone or Telephone Number</li>';
 				continue;
 			}
-			
+
+			// Query Twilio API for all messages sent to this number within the last 30 days.
+			// If any messages are found, skip this contact.
+			$message_query = $client->messages->read(
+				[
+					'To' => $recipient,
+					'dateSentAfter' => date('Y-m-d', strtotime('-30 days'))
+				],
+				1,
+				1
+			);
+			if (count($message_query) > 0) {
+				$message_result_list .= '<li>Error: Message already sent to ' . $recipient . ' within the last 30 days. Contact skipped.</li>';
+				continue;
+			}
+
 			$TWILIO_MESSAGE_BODY = str_replace('FIRSTNAME', $first_name, $selected_message);
 			// Add each message phone number to array of contacted numbers to prevent duplicates on same CSV file.
 			if (!in_array($recipient, $contacted_numbers)) {
 				try {
+					$opt_out_message = $client->messages->create(
+						$recipient,
+						[
+							'body' => $opt_out_instructions,
+							'from' => 'MGed693e77e70d6f52882605d37cc30d4c'
+						]
+					);
 					$send_message = $client->messages->create(
 						$recipient,
 						[
@@ -926,7 +950,6 @@ class Twilio_Csv_Public
 		ob_end_clean();
 		echo $content;
 		return '&nbsp;';
-
 	}
 
 	function twilio_csv_display_upload_form()
@@ -978,20 +1001,23 @@ class Twilio_Csv_Public
 		add_shortcode('twilio_csv_reports', array($this, 'twilio_csv_reports'));
 	}
 
-	function twilio_csv_reports() {
+	function twilio_csv_reports()
+	{
 		$return_content = '';
 		$messaging_reports = new TwilioCsvReports;
 		$outbound_messages = $messaging_reports->get_outbound();
-		$inbound_messages = $messaging_reports->get_inbound();
-		echo '<pre>';
+		// echo "hmmph";	
+		// $inbound_messages = $messaging_reports->get_inbound();
+		// echo '<pre>';
 		// var_dump($outbound_messages);
 		// display each message from the JSON object as a list item
-		foreach ($outbound_messages as $message) {
-			$return_content .= '<li>' . $message->body . '</li>';
-		}
-		echo $return_content;
-		echo '</pre>';
+		// foreach ($outbound_messages as $message) {
+		// 	$return_content .= '<li>' . $message->body . '</li>';
+		// }
+		// echo $return_content;
+		// echo '</pre>';
 		// var_dump($inbound_messages);
+		// return $outbound_messages;
 	}
 
 	/**

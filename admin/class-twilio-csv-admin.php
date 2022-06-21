@@ -150,11 +150,12 @@ class Twilio_Csv_Admin
 
 		add_settings_section('twilio_csv_main', 'Main Settings', array($this, 'twilio_csv_section_text'), 'twilio-csv-settings-page');
 
-		add_settings_field('api_sid', 'API SID', array($this, 'twilio_csv_setting_sid'), 'twilio-csv-settings-page', 'twilio_csv_main');
+		add_settings_field('api_sid', 'Account API SID', array($this, 'twilio_csv_setting_sid'), 'twilio-csv-settings-page', 'twilio_csv_main');
 
-		add_settings_field('api_auth_token', 'API AUTH TOKEN', array($this, 'twilio_csv_setting_token'), 'twilio-csv-settings-page', 'twilio_csv_main');
+		add_settings_field('api_auth_token', 'Auth Token', array($this, 'twilio_csv_setting_token'), 'twilio-csv-settings-page', 'twilio_csv_main');
 
-		// add_settings_field('sending_number', 'Primary Sending Phone Number', )
+		add_settings_field('sending_number', 'Primary Sending Phone Number', array($this, 'twilio_csv_sending_number'), 'twilio-csv-settings-page', 'twilio_csv_main');
+
 	}
 
 	/**
@@ -174,7 +175,7 @@ class Twilio_Csv_Admin
 	{
 
 		$options = get_option($this->plugin_name);
-		echo "<input id='plugin_text_string' name='$this->plugin_name[api_sid]' size='40' type='text' value='{$options['api_sid']}' />";
+		echo "<input id='api_sid' name='$this->plugin_name[api_sid]' size='40' type='text' value='{$options['api_sid']}' />";
 	}
 
 	/**
@@ -184,14 +185,14 @@ class Twilio_Csv_Admin
 	public function twilio_csv_setting_token()
 	{
 		$options = get_option($this->plugin_name);
-		echo "<input id='plugin_text_string' name='$this->plugin_name[api_auth_token]' size='40' type='text' value='{$options['api_auth_token']}' />";
+		echo "<input id='api_auth_token' name='$this->plugin_name[api_auth_token]' size='40' type='password' value='{$options['api_auth_token']}' />";
 	}
 
-	// public function twilio_csv_sending_number()
-	// {
-	// 	$options = get_option($this->plugin_name);
-	// 	echo "<input id='plugin_text_string' name='$this->plugin_name[sending_number]' size='40' type='text' value='{$options['sending_number']}' />";
-	// }
+	public function twilio_csv_sending_number()
+	{
+		$options = get_option($this->plugin_name);
+		echo "<input id='plugin_text_string' name='$this->plugin_name[sending_number]' size='40' type='text' value='{$options['sending_number']}' />";
+	}
 
 	/**
 	 * Sanitises all input fields.
@@ -201,7 +202,7 @@ class Twilio_Csv_Admin
 	{
 		$newinput['api_sid'] = trim($input['api_sid']);
 		$newinput['api_auth_token'] = trim($input['api_auth_token']);
-		// $newinput['sending_number'] = trim($input['sending_number']);
+		$newinput['sending_number'] = trim($input['sending_number']);
 		
 		return $newinput;
 	}
